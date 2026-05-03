@@ -233,6 +233,137 @@ describe("detectElements", () => {
     expect(elements[0].type).toBe("image");
   });
 
+  it("classifies additional ARIA roles correctly", () => {
+    const tabBtn = document.createElement("div");
+    tabBtn.setAttribute("role", "tab");
+    tabBtn.textContent = "Tab 1";
+    const checkbox = document.createElement("div");
+    checkbox.setAttribute("role", "checkbox");
+    checkbox.textContent = "Agree";
+    const link = document.createElement("div");
+    link.setAttribute("role", "link");
+    link.textContent = "Click here";
+
+    root.appendChild(tabBtn);
+    root.appendChild(checkbox);
+    root.appendChild(link);
+
+    mockRect(root, { x: 0, y: 0, width: 400, height: 200 });
+    mockRect(tabBtn, { x: 0, y: 0, width: 100, height: 30 });
+    mockRect(checkbox, { x: 0, y: 40, width: 100, height: 30 });
+    mockRect(link, { x: 0, y: 80, width: 200, height: 20 });
+
+    const elements = detectElements(root);
+
+    expect(elements).toHaveLength(3);
+    expect(elements.find((e) => e.rect.y === 0)!.type).toBe("button"); // tab
+    expect(elements.find((e) => e.rect.y === 40)!.type).toBe("input"); // checkbox
+    expect(elements.find((e) => e.rect.y === 80)!.type).toBe("text"); // link
+  });
+
+  it("skips elements with role=presentation or role=none", () => {
+    const decorative = document.createElement("div");
+    decorative.setAttribute("role", "presentation");
+    decorative.textContent = "decorative divider";
+    const noneDiv = document.createElement("div");
+    noneDiv.setAttribute("role", "none");
+    noneDiv.textContent = "none role";
+    const real = document.createElement("p");
+    real.textContent = "Real content";
+
+    root.appendChild(decorative);
+    root.appendChild(noneDiv);
+    root.appendChild(real);
+
+    mockRect(root, { x: 0, y: 0, width: 400, height: 200 });
+    mockRect(decorative, { x: 0, y: 0, width: 400, height: 30 });
+    mockRect(noneDiv, { x: 0, y: 40, width: 400, height: 30 });
+    mockRect(real, { x: 0, y: 80, width: 400, height: 20 });
+
+    const elements = detectElements(root);
+
+    expect(elements).toHaveLength(1);
+    expect(elements[0].type).toBe("text");
+  });
+
+  it("detects expanded text tags (code, pre, mark, del, abbr)", () => {
+    const tags = ["code", "pre", "mark", "del", "abbr"];
+    tags.forEach((tag, i) => {
+      const el = document.createElement(tag);
+      el.textContent = `${tag} content`;
+      root.appendChild(el);
+      mockRect(el, { x: 0, y: i * 24, width: 200, height: 20 });
+    });
+
+    mockRect(root, { x: 0, y: 0, width: 400, height: 200 });
+
+    const elements = detectElements(root);
+
+    expect(elements).toHaveLength(5);
+    elements.forEach((el) => {
+      expect(el.type).toBe("text");
+    });
+  });
+
+  it("detects media tags (iframe, audio, embed) as image type", () => {
+    const iframe = document.createElement("iframe");
+    const audio = document.createElement("audio");
+    const embed = document.createElement("embed");
+
+    root.appendChild(iframe);
+    root.appendChild(audio);
+    root.appendChild(embed);
+
+    mockRect(root, { x: 0, y: 0, width: 600, height: 400 });
+    mockRect(iframe, { x: 0, y: 0, width: 600, height: 300 });
+    mockRect(audio, { x: 0, y: 310, width: 300, height: 40 });
+    mockRect(embed, { x: 0, y: 360, width: 200, height: 30 });
+
+    const elements = detectElements(root);
+
+    expect(elements).toHaveLength(3);
+    elements.forEach((el) => {
+      expect(el.type).toBe("image");
+    });
+  });
+
+  it("detects progress and meter as input type", () => {
+    const progress = document.createElement("progress");
+    const meter = document.createElement("meter");
+
+    root.appendChild(progress);
+    root.appendChild(meter);
+
+    mockRect(root, { x: 0, y: 0, width: 400, height: 100 });
+    mockRect(progress, { x: 0, y: 0, width: 300, height: 20 });
+    mockRect(meter, { x: 0, y: 30, width: 300, height: 20 });
+
+    const elements = detectElements(root);
+
+    expect(elements).toHaveLength(2);
+    elements.forEach((el) => {
+      expect(el.type).toBe("input");
+    });
+  });
+
+  it("skips template and slot tags", () => {
+    const template = document.createElement("template");
+    template.innerHTML = "<p>Template content</p>";
+    const p = document.createElement("p");
+    p.textContent = "Real content";
+
+    root.appendChild(template);
+    root.appendChild(p);
+
+    mockRect(root, { x: 0, y: 0, width: 400, height: 100 });
+    mockRect(p, { x: 0, y: 0, width: 400, height: 20 });
+
+    const elements = detectElements(root);
+
+    expect(elements).toHaveLength(1);
+    expect(elements[0].type).toBe("text");
+  });
+
   it("calculates positions relative to root container", () => {
     const p = document.createElement("p");
     p.textContent = "Offset text";
