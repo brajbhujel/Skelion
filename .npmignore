@@ -1,0 +1,10 @@
+src/
+tsup.config.ts
+tsconfig.json
+jest.config.js
+.husky/
+.github/
+.DS_Store
+*.tgz
+product.txt
+.claude/
