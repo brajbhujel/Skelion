@@ -1,0 +1,68 @@
+@keyframes skelion-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skelion-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: skelion-shimmer 1.5s ease-in-out infinite;
+}
+
+.skelion-node {
+  background-color: #e5e7eb;
+  position: absolute;
+  overflow: hidden;
+}
+
+.skelion-node--rounded {
+  border-radius: 4px;
+}
+
+.skelion-node--circle {
+  border-radius: 50%;
+}
+
+.skelion-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.skelion-fallback {
+  background-color: #e5e7eb;
+  border-radius: 4px;
+  width: 100%;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .skelion-node {
+    background-color: #374151;
+  }
+
+  .skelion-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: skelion-shimmer 1.5s ease-in-out infinite;
+  }
+
+  .skelion-fallback {
+    background-color: #374151;
+  }
+}
