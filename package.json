@@ -48,6 +48,14 @@
   ],
   "author": "Bishawa Raj Bhujel",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rajbhujell/Skelion.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rajbhujell/Skelion/issues"
+  },
+  "homepage": "https://github.com/rajbhujell/Skelion#readme",
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
