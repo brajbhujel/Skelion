@@ -1,18 +1,21 @@
 # Skelion
 
-**Automatically generate skeleton UIs from your layout. Zero-config skeletons for React.**
+**Zero-config, DOM-aware, SSR-safe skeleton system for React & Next.js.**
 
-Skelion is a lightweight React + TypeScript library that creates skeleton loaders by analyzing the rendered layout of your components. No manual skeleton design needed — just wrap your UI and go.
+Skelion reads your actual component layout and generates pixel-perfect skeleton placeholders automatically. No manual skeleton building needed.
 
 ## Features
 
-- **Zero-config** — wrap any component and get automatic skeletons
-- **Layout-aware** — uses `getBoundingClientRect` to match your real UI structure
-- **SSR-safe** — works with Next.js App Router, no hydration mismatches
-- **Lightweight** — CSS-based shimmer animation, no heavy dependencies
-- **Tree-shakeable** — ESM + CJS dual output
-- **Dark mode** — automatic support via `prefers-color-scheme`
-- **Accessible** — proper `aria-busy` and `role="status"` attributes
+- **DOM-Aware Auto Skeleton** — reads real layout via `getBoundingClientRect`
+- **4 Animation Styles** — pulse (default), shimmer, wave, solid
+- **SSR-Safe** — prevents hydration mismatches in Next.js
+- **CSS Variables** — full theming with `--skeleton-color`, `--skeleton-radius`, etc.
+- **Preset Variants** — text, avatar, card, image
+- **Sub-Components** — `Skeleton.Text`, `Skeleton.Circle`, `Skeleton.Block`, `Skeleton.Image`
+- **CLI Tool** — `npx skelion init` and `npx skelion generate`
+- **Dark Mode** — automatic via `prefers-color-scheme`
+- **TypeScript-First** — full type safety with autocomplete-friendly props
+- **Tree-Shakable** — ESM + CJS dual output, minimal dependencies
 
 ## Install
 
@@ -20,165 +23,171 @@ Skelion is a lightweight React + TypeScript library that creates skeleton loader
 npm install skelion
 ```
 
-## Quick Start
+Add the CSS import to your app entry point:
 
 ```tsx
-import { Skelion } from "skelion";
+import "skelion/styles.css";
+```
+
+Or use the CLI:
+
+```bash
+npx skelion init
+```
+
+## Quick Start
+
+### Auto Skeleton (Recommended)
+
+```tsx
+import { Skeleton } from "skelion";
 import "skelion/styles.css";
 
-function App() {
-  const [loading, setLoading] = useState(true);
-
+function UserProfile({ user, loading }) {
   return (
-    <Skelion loading={loading}>
-      <YourComponent />
-    </Skelion>
+    <Skeleton loading={loading}>
+      <div className="profile">
+        <img src={user.avatar} alt={user.name} />
+        <h2>{user.name}</h2>
+        <p>{user.bio}</p>
+      </div>
+    </Skeleton>
   );
 }
 ```
 
-When `loading` is `true`, Skelion renders the children in a hidden container, measures their layout, and generates matching skeleton overlays. When `loading` becomes `false`, it renders the children normally.
-
-## Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `loading` | `boolean` | — | Whether to show the skeleton |
-| `shimmer` | `boolean` | `true` | Enable shimmer animation |
-| `duration` | `number` | `1.5` | Shimmer animation duration in seconds |
-| `density` | `"low" \| "medium" \| "high"` | `"medium"` | How deeply to analyze the DOM tree |
-| `rounded` | `boolean` | — | Force rounded corners on all skeleton nodes |
-| `className` | `string` | — | Class name for the wrapper |
-| `as` | `React.ElementType` | `"div"` | Wrapper element type |
-| `variant` | `"auto" \| "text" \| "avatar" \| "card" \| "custom"` | `"auto"` | Skeleton variant |
-
-## Variants
-
-### Auto (default)
-
-Analyzes children layout and generates matching skeletons:
+### Preset Variants
 
 ```tsx
-<Skelion loading={isLoading}>
-  <UserProfile />
-</Skelion>
+<Skeleton loading={true} variant="text" />
+<Skeleton loading={true} variant="avatar" />
+<Skeleton loading={true} variant="card" />
+<Skeleton loading={true} variant="image" />
 ```
 
-### Preset variants
-
-Use built-in presets without needing children to measure:
+### Custom Sizing
 
 ```tsx
-<Skelion loading variant="text" />
-<Skelion loading variant="avatar" />
-<Skelion loading variant="card" />
+<Skeleton loading={true} width={200} height={20} />
+<Skeleton loading={true} width="100%" height="2rem" />
 ```
 
-## Manual Skeleton Building
-
-For full control, use the sub-components:
+### Animation Styles
 
 ```tsx
-import { Skelion } from "skelion";
+<Skeleton loading={true} animation="pulse">   {/* Default */}
+  <YourComponent />
+</Skeleton>
+
+<Skeleton loading={true} animation="shimmer">
+  <YourComponent />
+</Skeleton>
+
+<Skeleton loading={true} animation="wave">
+  <YourComponent />
+</Skeleton>
+
+<Skeleton loading={true} animation="solid">   {/* No animation */}
+  <YourComponent />
+</Skeleton>
+```
+
+### Sub-Components
+
+```tsx
+import { Skeleton } from "skelion";
 
 function CustomSkeleton() {
   return (
     <div style={{ display: "flex", gap: 12 }}>
-      <Skelion.Circle size={48} />
+      <Skeleton.Circle size={48} animation="shimmer" />
       <div style={{ flex: 1 }}>
-        <Skelion.Text width="60%" height={16} />
-        <Skelion.Text width="100%" height={14} style={{ marginTop: 8 }} />
-        <Skelion.Block width="100%" height={80} style={{ marginTop: 12 }} />
+        <Skeleton.Text width="60%" height={16} animation="shimmer" />
+        <Skeleton.Text width="100%" height={14} lines={2} animation="shimmer" />
       </div>
     </div>
   );
 }
 ```
 
-### Sub-components
-
-**`Skelion.Text`** — text line placeholder
-- `width` (default `"100%"`)
-- `height` (default `16`)
-
-**`Skelion.Circle`** — circular avatar placeholder
-- `size` (default `48`)
-
-**`Skelion.Block`** — rectangular block placeholder
-- `width` (default `"100%"`)
-- `height` (default `100`)
-- `rounded` (default `true`)
-
-All sub-components accept `shimmer`, `duration`, `className`, and `style`.
-
-## Next.js Usage
-
-Skelion is fully compatible with Next.js App Router. The layout detection only runs client-side via `useEffect`, so there are no SSR issues. During SSR, a simple fallback skeleton is rendered until hydration completes.
+### SSR / Next.js
 
 ```tsx
-"use client";
+<Skeleton loading={loading} ssr>
+  <YourComponent />
+</Skeleton>
+```
 
-import { Skelion } from "skelion";
-import "skelion/styles.css";
+The `ssr` prop enables the Boneyard Pattern: server renders static markup, client hydrates identically, then animations activate after hydration. Zero hydration mismatches.
 
-export function UserCard({ user, loading }: Props) {
-  return (
-    <Skelion loading={loading}>
-      <div className="card">
-        <img src={user?.avatar} />
-        <h2>{user?.name}</h2>
-        <p>{user?.bio}</p>
-      </div>
-    </Skelion>
-  );
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `loading` | `boolean` | — | Whether to show the skeleton |
+| `animation` | `"pulse" \| "shimmer" \| "wave" \| "solid"` | `"pulse"` | Animation style |
+| `duration` | `number` | `1.5` | Animation duration in seconds |
+| `density` | `"low" \| "medium" \| "high"` | `"medium"` | DOM traversal depth |
+| `variant` | `"auto" \| "text" \| "avatar" \| "card" \| "image" \| "custom"` | `"auto"` | Skeleton variant |
+| `ssr` | `boolean` | `false` | Enable SSR-safe rendering |
+| `width` | `number \| string` | — | Custom width |
+| `height` | `number \| string` | — | Custom height |
+| `rounded` | `boolean` | — | Force rounded corners |
+| `className` | `string` | — | Wrapper class name |
+| `as` | `React.ElementType` | `"div"` | Wrapper element type |
+| `style` | `React.CSSProperties` | — | Wrapper inline style |
+
+## CSS Variables
+
+```css
+:root {
+  --skeleton-color: #e5e7eb;
+  --skeleton-shimmer: rgba(255, 255, 255, 0.4);
+  --skeleton-radius: 4px;
+  --skeleton-duration: 1.5s;
 }
 ```
 
-## How It Works
+## CLI
 
-1. When `loading={true}`, children are rendered in a hidden container
-2. `getBoundingClientRect` measures each leaf element's position and size
-3. Elements are classified (text, image, button, circle, etc.)
-4. Skeleton overlays are generated with matching dimensions
-5. A `ResizeObserver` re-measures on layout changes (debounced)
-6. When `loading` becomes `false`, skeletons are replaced with real content
+```bash
+# Initialize Skelion in your project
+npx skelion init
+
+# Generate skeleton components
+npx skelion generate card
+npx skelion generate profile --name User --animation shimmer
+npx skelion generate table --output ./src/skeletons
+```
+
+Available templates: `card`, `list`, `profile`, `table`.
+
+## Migration from v1
+
+If upgrading from v1, the main changes are:
+
+- `<Skelion />` → `<Skeleton />` (old name still works with deprecation warning)
+- `shimmer={true}` → `animation="shimmer"` (default is now `"pulse"`)
+- CSS classes: `skelion-*` → `skeleton-*` (old classes still supported)
+
+See the full [migration guide](docs/docs/migration-v2.md).
 
 ## Development
 
 ```bash
-# Install dependencies
-npm install
-
-# Run tests
-npm test
-
-# Run tests in watch mode
-npm run test:watch
-
-# Type check
-npm run typecheck
-
-# Build
-npm run build
-
-# Dev mode (watch)
-npm run dev
+npm install          # Install dependencies
+npm test             # Run tests
+npm run build        # Build library + CLI
+npm run typecheck    # Type check
+npm run dev          # Watch mode
 ```
 
-### Testing
+## Author
 
-Skelion uses **Jest** with **jsdom** and **@testing-library/react** for DOM-based testing. Tests verify that generated skeletons exactly match the layout of real React components by mocking `getBoundingClientRect` to simulate layout in jsdom.
+**Bishawa Raj Bhujel** — [bishawaraj.com.np](https://bishawaraj.com.np)
 
-The test suite covers:
-- DOM-aware skeleton generation with exact position/size matching
-- SSR safety and fallback behavior
-- Shimmer animation toggle and duration
-- Variant presets (text, avatar, card)
-- Sub-component rendering (Skelion.Text, Circle, Block)
-- Accessibility attributes (aria-busy, aria-hidden, role)
-- Props and configuration
-
-**Husky** is configured to run typecheck + tests on every commit via a pre-commit hook.
+- GitHub: [brajbhujel/Skelion](https://github.com/brajbhujel/Skelion)
+- npm: [skelion](https://www.npmjs.com/package/skelion)
 
 ## License
 

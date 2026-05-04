@@ -1,21 +1,13 @@
-import { DetectedElement } from "./detectElements";
+import type { DetectedElement } from "./detectElements";
+import type { SkeletonNode } from "../types";
 
-export interface SkeletonNode {
-  id: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rounded: boolean;
-  circle: boolean;
-  type: DetectedElement["type"];
-}
+export type { SkeletonNode };
 
 export function generateSkeleton(
   elements: DetectedElement[]
 ): SkeletonNode[] {
   return elements.map((el, index) => ({
-    id: `skelion-${index}`,
+    id: `skeleton-${index}`,
     x: el.rect.x,
     y: el.rect.y,
     width: el.rect.width,

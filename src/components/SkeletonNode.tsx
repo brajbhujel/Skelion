@@ -1,19 +1,19 @@
 import React from "react";
-import type { SkeletonNode as SkeletonNodeType } from "../utils/generateSkeleton";
+import type { SkeletonNode as SkeletonNodeType, AnimationVariant } from "../types";
 
 interface SkeletonNodeProps {
   node: SkeletonNodeType;
-  shimmer: boolean;
+  animation: AnimationVariant;
   duration: number;
   className?: string;
 }
 
-export const SkeletonNode: React.FC<SkeletonNodeProps> = React.memo(
-  ({ node, shimmer, duration, className }) => {
+export const SkeletonNodeComponent: React.FC<SkeletonNodeProps> = React.memo(
+  ({ node, animation, duration, className }) => {
     const nodeClasses = [
-      "skelion-node",
-      node.circle ? "skelion-node--circle" : node.rounded ? "skelion-node--rounded" : "",
-      shimmer ? "skelion-shimmer" : "",
+      "skeleton-node",
+      node.circle ? "skeleton-node--circle" : node.rounded ? "skeleton-node--rounded" : "",
+      `skeleton-animate-${animation}`,
       className ?? "",
     ]
       .filter(Boolean)
@@ -28,11 +28,11 @@ export const SkeletonNode: React.FC<SkeletonNodeProps> = React.memo(
           top: node.y,
           width: node.width,
           height: node.height,
-          animationDuration: shimmer ? `${duration}s` : undefined,
-        }}
+          "--skeleton-duration": `${duration}s`,
+        } as React.CSSProperties}
       />
     );
   }
 );
 
-SkeletonNode.displayName = "SkeletonNode";
+SkeletonNodeComponent.displayName = "SkeletonNode";
