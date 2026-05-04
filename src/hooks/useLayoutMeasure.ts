@@ -1,5 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { detectElements, Density, DetectedElement } from "../utils/detectElements";
+import { detectElements } from "../utils/detectElements";
+import type { Density } from "../types";
+import type { DetectedElement } from "../utils/detectElements";
 
 interface UseLayoutMeasureOptions {
   enabled: boolean;

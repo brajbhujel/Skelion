@@ -1,10 +1,13 @@
 {
   "name": "skelion",
-  "version": "1.0.0",
-  "description": "Automatically generate skeleton UIs from your layout. Zero-config skeletons for React.",
+  "version": "2.0.0",
+  "description": "Zero-config, DOM-aware, SSR-safe skeleton system for React & Next.js",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "bin": {
+    "skelion": "./dist/cli.js"
+  },
   "exports": {
     ".": {
       "import": {
@@ -16,10 +19,11 @@
         "default": "./dist/index.js"
       }
     },
-    "./styles.css": "./dist/index.css"
+    "./styles.css": "./dist/skeleton.css"
   },
   "files": [
-    "dist"
+    "dist",
+    "cli/templates"
   ],
   "sideEffects": [
     "*.css"
@@ -42,28 +46,37 @@
     "skeleton-loader",
     "placeholder",
     "shimmer",
+    "pulse",
     "nextjs",
+    "ssr",
     "typescript",
-    "zero-config"
+    "zero-config",
+    "dom-aware",
+    "auto-skeleton",
+    "cli"
   ],
   "author": "Bishawa Raj Bhujel",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rajbhujell/Skelion.git"
+    "url": "git+https://github.com/brajbhujel/Skelion.git"
   },
   "bugs": {
-    "url": "https://github.com/rajbhujell/Skelion/issues"
+    "url": "https://github.com/brajbhujel/Skelion/issues"
   },
-  "homepage": "https://github.com/rajbhujell/Skelion#readme",
+  "homepage": "https://skelion.bishawaraj.com.np",
   "peerDependencies": {
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/jest": "^30.0.0",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "husky": "^9.1.7",

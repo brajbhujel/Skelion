@@ -27,7 +27,7 @@ describe("generateSkeleton", () => {
 
     // Each node must exactly match the detected element's position and size
     expect(nodes[0]).toEqual({
-      id: "skelion-0",
+      id: "skeleton-0",
       x: 0,
       y: 0,
       width: 200,
@@ -38,7 +38,7 @@ describe("generateSkeleton", () => {
     });
 
     expect(nodes[1]).toEqual({
-      id: "skelion-1",
+      id: "skeleton-1",
       x: 0,
       y: 160,
       width: 300,
@@ -49,7 +49,7 @@ describe("generateSkeleton", () => {
     });
 
     expect(nodes[2]).toEqual({
-      id: "skelion-2",
+      id: "skeleton-2",
       x: 0,
       y: 200,
       width: 100,

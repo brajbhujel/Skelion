@@ -1,4 +1,6 @@
 src/
+cli/
+docs/
 tsup.config.ts
 tsconfig.json
 jest.config.js

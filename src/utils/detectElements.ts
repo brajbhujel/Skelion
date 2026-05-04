@@ -1,11 +1,6 @@
-export type DetectedElementType =
-  | "text"
-  | "image"
-  | "button"
-  | "circle"
-  | "container"
-  | "input"
-  | "unknown";
+import type { DetectedElementType } from "../types";
+
+export type { DetectedElementType };
 
 export interface DetectedElement {
   type: DetectedElementType;
@@ -129,7 +124,9 @@ function isVisible(el: Element, rect: DOMRect): boolean {
 
 // --- Public API ---
 
-export type Density = "low" | "medium" | "high";
+import type { Density } from "../types";
+
+export type { Density };
 
 const DENSITY_DEPTH: Record<Density, number> = {
   low: 2,

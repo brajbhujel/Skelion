@@ -1,0 +1,200 @@
+/* ============================================================
+   Skelion v2 — Skeleton CSS System
+   CSS Custom Properties + 4 Animation Variants + Dark Mode
+   ============================================================ */
+
+/* === Custom Properties === */
+
+:root {
+  --skeleton-color: #e5e7eb;
+  --skeleton-shimmer: rgba(255, 255, 255, 0.4);
+  --skeleton-radius: 4px;
+  --skeleton-duration: 1.5s;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --skeleton-color: #374151;
+    --skeleton-shimmer: rgba(255, 255, 255, 0.08);
+  }
+}
+
+/* === Base Node === */
+
+.skeleton-node {
+  background-color: var(--skeleton-color);
+  position: absolute;
+  overflow: hidden;
+}
+
+.skeleton-node--rounded {
+  border-radius: var(--skeleton-radius);
+}
+
+.skeleton-node--circle {
+  border-radius: 50%;
+}
+
+/* === Wrapper === */
+
+.skeleton-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+/* === Fallback (SSR / pre-measurement) === */
+
+.skeleton-fallback {
+  background-color: var(--skeleton-color);
+  border-radius: var(--skeleton-radius);
+  width: 100%;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+/* === Animation: Pulse (default) === */
+
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton-animate-pulse {
+  animation: skeleton-pulse var(--skeleton-duration) ease-in-out infinite;
+}
+
+/* === Animation: Shimmer === */
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-color) 0%,
+    var(--skeleton-shimmer) 50%,
+    var(--skeleton-color) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer var(--skeleton-duration) ease-in-out infinite;
+}
+
+/* === Animation: Wave === */
+
+@keyframes skeleton-wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-animate-wave {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-animate-wave::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--skeleton-shimmer),
+    transparent
+  );
+  animation: skeleton-wave var(--skeleton-duration) ease-in-out infinite;
+}
+
+/* === Animation: Solid (no animation) === */
+
+.skeleton-animate-solid {
+  /* Static — no animation applied */
+}
+
+/* === SSR Boneyard: disable animations until hydrated === */
+
+.skeleton-ssr .skeleton-node,
+.skeleton-ssr .skeleton-fallback {
+  animation: none !important;
+}
+
+.skeleton-ssr .skeleton-node::after,
+.skeleton-ssr .skeleton-fallback::after {
+  animation: none !important;
+}
+
+/* ============================================================
+   Backward Compatibility — skelion-* class aliases
+   Maps v1 class names to v2 styles for users upgrading.
+   ============================================================ */
+
+.skelion-node {
+  background-color: var(--skeleton-color);
+  position: absolute;
+  overflow: hidden;
+}
+
+.skelion-node--rounded {
+  border-radius: var(--skeleton-radius);
+}
+
+.skelion-node--circle {
+  border-radius: 50%;
+}
+
+.skelion-wrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.skelion-fallback {
+  background-color: var(--skeleton-color);
+  border-radius: var(--skeleton-radius);
+  width: 100%;
+  min-height: 100px;
+  overflow: hidden;
+}
+
+/* Legacy shimmer animation alias */
+@keyframes skelion-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skelion-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-color) 0%,
+    var(--skeleton-shimmer) 50%,
+    var(--skeleton-color) 100%
+  );
+  background-size: 200% 100%;
+  animation: skelion-shimmer var(--skeleton-duration) ease-in-out infinite;
+}
+
+@media (prefers-color-scheme: dark) {
+  .skelion-node {
+    background-color: var(--skeleton-color);
+  }
+
+  .skelion-fallback {
+    background-color: var(--skeleton-color);
+  }
+}
