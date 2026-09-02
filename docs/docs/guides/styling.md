@@ -4,46 +4,52 @@ sidebar_position: 4
 
 # Styling & Theming
 
-Skelion uses CSS custom properties (variables) for full theming control. No build-time configuration needed.
+Skelion uses CSS custom properties for theming. Defaults are light bones (`#f0f0f0`) so the placeholder feels like a wash, not a slab.
 
 ## CSS Variables
 
-Override these variables in your CSS to customize the skeleton appearance:
-
 ```css
 :root {
-  --skeleton-color: #e5e7eb;                    /* Background color */
-  --skeleton-shimmer: rgba(255, 255, 255, 0.4); /* Shimmer highlight */
-  --skeleton-radius: 4px;                        /* Border radius */
-  --skeleton-duration: 1.5s;                     /* Animation speed */
+  --skeleton-light-color: #f0f0f0;
+  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-light-shimmer: #f7f7f7;
+  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-radius: 6px;
+  --skeleton-duration: 2s;
+  --skeleton-angle: 110deg;
 }
 ```
+
+`--skeleton-color` and `--skeleton-shimmer` resolve from the light/dark pair automatically.
 
 ## Dark Mode
 
-Skelion automatically supports dark mode via `prefers-color-scheme`:
+Skelion follows, in order:
 
-```css
-@media (prefers-color-scheme: dark) {
-  :root {
-    --skeleton-color: #374151;
-    --skeleton-shimmer: rgba(255, 255, 255, 0.08);
-  }
-}
-```
-
-For class-based dark mode (e.g., Tailwind's `dark:` classes):
+1. A `.dark` or `[data-theme="dark"]` ancestor (Tailwind / next-themes)
+2. `prefers-color-scheme: dark`
 
 ```css
 .dark {
-  --skeleton-color: #374151;
-  --skeleton-shimmer: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
 }
 ```
 
-## Tailwind CSS Integration
+## Per-component colors
 
-Skelion works great with Tailwind. Override the CSS variables using Tailwind's theme values:
+```tsx
+<Skeleton
+  loading={loading}
+  color="#eee"
+  darkColor="rgba(255,255,255,0.1)"
+  shimmerColor="rgba(255,255,255,0.8)"
+>
+  <Card />
+</Skeleton>
+```
+
+## Tailwind CSS Integration
 
 ```css title="globals.css"
 @tailwind base;
@@ -51,37 +57,16 @@ Skelion works great with Tailwind. Override the CSS variables using Tailwind's t
 @tailwind utilities;
 
 :root {
-  --skeleton-color: theme(colors.gray.200);
-  --skeleton-shimmer: rgba(255, 255, 255, 0.4);
-  --skeleton-radius: theme(borderRadius.DEFAULT);
+  --skeleton-light-color: theme(colors.zinc.100);
+  --skeleton-radius: theme(borderRadius.md);
 }
 
 .dark {
-  --skeleton-color: theme(colors.gray.700);
-  --skeleton-shimmer: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
 }
 ```
 
-You can also use Tailwind utility classes directly on skeleton components:
-
-```tsx
-<Skeleton.Text className="rounded-lg" width="100%" height={16} />
-<Skeleton.Circle className="ring-2 ring-gray-100" size={48} />
-```
-
-## Custom Colors Per Component
-
-Override variables inline for specific skeletons:
-
-```tsx
-<div style={{ "--skeleton-color": "#dbeafe" } as React.CSSProperties}>
-  <Skeleton loading={true} variant="card" />
-</div>
-```
-
 ## Custom Class Names
-
-All components accept a `className` prop:
 
 ```tsx
 <Skeleton loading={true} className="my-skeleton-wrapper">
@@ -91,15 +76,25 @@ All components accept a `className` prop:
 <Skeleton.Text className="my-text-skeleton" />
 ```
 
+Skip a node during auto-detect:
+
+```html
+<span data-skeleton="ignore">live badge</span>
+<div data-skeleton="leaf">treat this whole block as one bone</div>
+```
+
 ## Available CSS Classes
 
 | Class | Description |
 |---|---|
+| `.skeleton-root` | Full-width wrapper |
+| `.skeleton-measure` | Hidden in-layout measurement layer |
 | `.skeleton-node` | Base skeleton element |
 | `.skeleton-node--rounded` | Rounded corners |
 | `.skeleton-node--circle` | Circular shape |
-| `.skeleton-wrapper` | Auto-skeleton container |
-| `.skeleton-fallback` | SSR fallback placeholder |
+| `.skeleton-wrapper` | Auto-skeleton overlay |
+| `.skeleton-shine` | Shared shimmer sweep |
+| `.skeleton-fallback` | SSR / pre-measure placeholder |
 | `.skeleton-animate-pulse` | Pulse animation |
 | `.skeleton-animate-shimmer` | Shimmer animation |
 | `.skeleton-animate-wave` | Wave animation |

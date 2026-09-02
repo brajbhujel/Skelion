@@ -1,7 +1,7 @@
 {
   "name": "skelion",
-  "version": "2.0.0",
-  "description": "Zero-config, DOM-aware, SSR-safe skeleton system for React & Next.js",
+  "version": "3.0.0",
+  "description": "Zero-config, DOM-aware, SSR-safe skeleton system for React & Next.js. Pixel-perfect bones from your real layout.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",

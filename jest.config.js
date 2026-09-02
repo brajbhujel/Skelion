@@ -16,4 +16,5 @@ module.exports = {
   },
   setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
   testMatch: ["**/__tests__/**/*.test.ts?(x)"],
+  testPathIgnorePatterns: ["/node_modules/", "/\\._"],
 };

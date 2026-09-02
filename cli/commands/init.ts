@@ -32,32 +32,28 @@ function hasTailwind(cwd: string): boolean {
   return !!allDeps["tailwindcss"];
 }
 
-const CONFIG_TEMPLATE = `import type { SkelionConfig } from "skelion";
+const CONFIG_TEMPLATE = `import type { SkeletonConfig } from "skelion";
 
-const config: SkelionConfig = {
-  // Default animation style: "pulse" | "shimmer" | "wave" | "solid"
+const config: SkeletonConfig = {
   animation: "pulse",
-
-  // DOM traversal depth: "low" | "medium" | "high"
   density: "medium",
-
-  // Animation duration in seconds
-  duration: 1.5,
+  duration: 2,
+  color: "#f0f0f0",
+  darkColor: "rgba(255, 255, 255, 0.08)",
+  shimmerAngle: 110,
 };
 
 export default config;
 `;
 
-const CONFIG_JS_TEMPLATE = `/** @type {import("skelion").SkelionConfig} */
+const CONFIG_JS_TEMPLATE = `/** @type {import("skelion").SkeletonConfig} */
 const config = {
-  // Default animation style: "pulse" | "shimmer" | "wave" | "solid"
   animation: "pulse",
-
-  // DOM traversal depth: "low" | "medium" | "high"
   density: "medium",
-
-  // Animation duration in seconds
-  duration: 1.5,
+  duration: 2,
+  color: "#f0f0f0",
+  darkColor: "rgba(255, 255, 255, 0.08)",
+  shimmerAngle: 110,
 };
 
 module.exports = config;
@@ -119,13 +115,11 @@ export const initCommand = new Command("init")
       console.log("  Tailwind CSS detected! You can customize skeleton colors with CSS variables:\n");
       console.log("     /* In your global CSS */");
       console.log("     :root {");
-      console.log("       --skeleton-color: theme(colors.gray.200);");
-      console.log("       --skeleton-shimmer: rgba(255, 255, 255, 0.4);");
-      console.log("       --skeleton-radius: theme(borderRadius.DEFAULT);");
+      console.log("       --skeleton-light-color: #f0f0f0;");
+      console.log("       --skeleton-radius: theme(borderRadius.md);");
       console.log("     }");
       console.log("     .dark {");
-      console.log("       --skeleton-color: theme(colors.gray.700);");
-      console.log("       --skeleton-shimmer: rgba(255, 255, 255, 0.08);");
+      console.log("       --skeleton-color: rgba(255, 255, 255, 0.08);");
       console.log("     }\n");
     }
 

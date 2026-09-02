@@ -30,7 +30,10 @@ export function useLayoutMeasure({
     if (!container) return;
 
     const rect = container.getBoundingClientRect();
-    setContainerSize({ width: rect.width, height: rect.height });
+    setContainerSize({
+      width: Math.max(rect.width, container.offsetWidth, container.scrollWidth),
+      height: Math.max(rect.height, container.offsetHeight, container.scrollHeight),
+    });
 
     const detected = detectElements(container, density);
     setElements(detected);
@@ -44,18 +47,15 @@ export function useLayoutMeasure({
       return;
     }
 
-    // Use requestAnimationFrame to ensure layout is painted before measuring
     const rafId = requestAnimationFrame(() => {
       measure();
     });
 
-    // Set up ResizeObserver for dynamic layouts
     const container = containerRef.current;
     let observer: ResizeObserver | null = null;
 
     if (container && typeof ResizeObserver !== "undefined") {
       observer = new ResizeObserver(() => {
-        // Debounce resize measurements
         if (resizeTimerRef.current) {
           clearTimeout(resizeTimerRef.current);
         }

@@ -2,6 +2,7 @@ import React from "react";
 import { render, screen, act } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { Skeleton } from "../components/Skeleton";
+import { SkeletonProvider } from "../context";
 
 // ─────────────────────────────────────────────
 // Layout mock system
@@ -630,5 +631,94 @@ describe("Skeleton — props", () => {
     // Should use auto mode and generate skeleton
     const wrapper = container.querySelector(".skeleton-wrapper");
     expect(wrapper).toBeInTheDocument();
+  });
+});
+
+// ─────────────────────────────────────────────
+// 10. v3 layout, theming, stagger
+// ─────────────────────────────────────────────
+
+describe("Skeleton — v3 layout and theming", () => {
+  it("uses a full-width root so bones match the parent, not shrink-wrapped content", () => {
+    const pRect = registerRect({ x: 0, y: 0, width: 800, height: 20 });
+
+    const { container } = render(
+      <Skeleton loading={true}>
+        <p data-skelion-rect={pRect}>Text</p>
+      </Skeleton>
+    );
+
+    const root = container.querySelector(".skeleton-root") as HTMLElement;
+    expect(root).toBeInTheDocument();
+    expect(root.style.width).toBe("100%");
+
+    const measure = container.querySelector(".skeleton-measure") as HTMLElement;
+    expect(measure).toBeInTheDocument();
+    expect(measure.style.width).toBe("100%");
+
+    const wrapper = container.querySelector(".skeleton-wrapper") as HTMLElement;
+    expect(wrapper.style.width).toBe("100%");
+  });
+
+  it("applies light bone color via CSS variables instead of a dark gray fill", () => {
+    const { container } = render(
+      <Skeleton loading={true} variant="text" color="#f0f0f0" shimmerColor="#fafafa" />
+    );
+
+    const root = container.querySelector(".skeleton-root") as HTMLElement;
+    expect(root.style.getPropertyValue("--skeleton-light-color")).toBe("#f0f0f0");
+    expect(root.style.getPropertyValue("--skeleton-light-shimmer")).toBe("#fafafa");
+  });
+
+  it("staggers bone animation when stagger is enabled", () => {
+    const a = registerRect({ x: 0, y: 0, width: 400, height: 20 });
+    const b = registerRect({ x: 0, y: 28, width: 400, height: 20 });
+
+    const { container } = render(
+      <Skeleton loading={true} stagger={80}>
+        <div>
+          <p data-skelion-rect={a}>One</p>
+          <p data-skelion-rect={b}>Two</p>
+        </div>
+      </Skeleton>
+    );
+
+    const nodes = container.querySelectorAll(".skeleton-wrapper .skeleton-node") as NodeListOf<HTMLElement>;
+    expect(nodes.length).toBe(2);
+    expect(nodes[0].style.animationDelay).toBe("0ms");
+    expect(nodes[1].style.animationDelay).toBe("80ms");
+  });
+
+  it("uses a custom fallback while measuring", () => {
+    let storedCb: FrameRequestCallback | null = null;
+    globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
+      storedCb = cb;
+      return 1;
+    };
+
+    const { container } = render(
+      <Skeleton loading={true} fallback={<div data-testid="custom-fallback">wait</div>}>
+        <div>Content</div>
+      </Skeleton>
+    );
+
+    expect(container.querySelector("[data-testid='custom-fallback']")).toBeInTheDocument();
+    expect(container.querySelector(".skeleton-fallback")).not.toBeInTheDocument();
+
+    act(() => {
+      storedCb?.(performance.now());
+    });
+  });
+
+  it("inherits animation and duration from SkeletonProvider", () => {
+    const { container } = render(
+      <SkeletonProvider animation="shimmer" duration={2.4}>
+        <Skeleton.Text width="100%" height={14} />
+      </SkeletonProvider>
+    );
+
+    const node = container.querySelector(".skeleton-node") as HTMLElement;
+    expect(node).toHaveClass("skeleton-animate-shimmer");
+    expect(node.style.getPropertyValue("--skeleton-duration")).toBe("2.4s");
   });
 });

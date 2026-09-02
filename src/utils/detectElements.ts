@@ -11,22 +11,18 @@ export interface DetectedElement {
     height: number;
   };
   rounded: boolean;
+  radius?: string;
 }
 
 // --- Tag classification sets ---
 
 const TEXT_TAGS = new Set([
-  // Headings
   "H1", "H2", "H3", "H4", "H5", "H6",
-  // Block text
   "P", "BLOCKQUOTE", "PRE", "FIGCAPTION", "CAPTION", "SUMMARY", "DT", "DD",
-  // Inline text
   "SPAN", "A", "LABEL", "EM", "STRONG", "SMALL", "CITE", "TIME",
   "CODE", "MARK", "DEL", "INS", "SUB", "SUP", "ABBR", "DATA",
   "BDI", "BDO", "KBD", "SAMP", "VAR", "Q", "DFN", "S", "U", "B", "I",
-  // Table cells / list items (leaf-level text containers)
   "LI", "TD", "TH",
-  // Output
   "OUTPUT",
 ]);
 
@@ -46,8 +42,12 @@ const SKIP_TAGS = new Set([
   "BR", "HR", "WBR", "COL", "COLGROUP",
 ]);
 
-// ARIA roles that should be skipped (decorative / presentational)
 const SKIP_ROLES = new Set(["presentation", "none"]);
+
+const BLOCK_TEXT_TAGS = new Set([
+  "H1", "H2", "H3", "H4", "H5", "H6",
+  "P", "BLOCKQUOTE", "PRE", "LI", "DD", "DT", "FIGCAPTION", "LABEL",
+]);
 
 // --- Helpers ---
 
@@ -65,10 +65,15 @@ function isCircular(el: Element, rect: DOMRect): boolean {
   return false;
 }
 
-function hasRounding(el: Element): boolean {
+function readRadius(el: Element): string | undefined {
   const style = window.getComputedStyle(el);
-  const radius = parseFloat(style.borderRadius);
-  return radius > 0;
+  const radius = style.borderRadius;
+  if (!radius || radius === "0px" || radius === "0") return undefined;
+  return radius;
+}
+
+function hasRounding(el: Element): boolean {
+  return Boolean(readRadius(el));
 }
 
 function classifyElement(el: Element): DetectedElementType {
@@ -76,7 +81,6 @@ function classifyElement(el: Element): DetectedElementType {
 
   if (SKIP_TAGS.has(tag)) return "unknown";
 
-  // Check ARIA role first — role overrides tag semantics
   const role = el.getAttribute("role");
   if (role) {
     if (SKIP_ROLES.has(role)) return "unknown";
@@ -89,23 +93,30 @@ function classifyElement(el: Element): DetectedElementType {
     if (role === "separator") return "unknown";
   }
 
-  // Tag-based classification
   if (IMAGE_TAGS.has(tag)) return "image";
   if (BUTTON_TAGS.has(tag)) return "button";
   if (INPUT_TAGS.has(tag)) return "input";
   if (TEXT_TAGS.has(tag)) return "text";
 
-  // Structural / container — these get walked into, not classified as leaf
   return "container";
+}
+
+function isForcedLeaf(el: Element): boolean {
+  const attr = el.getAttribute("data-skeleton") ?? el.getAttribute("data-skelion");
+  return attr === "leaf" || attr === "bone";
+}
+
+function isIgnored(el: Element): boolean {
+  const attr = el.getAttribute("data-skeleton") ?? el.getAttribute("data-skelion");
+  if (attr === "ignore" || attr === "skip") return true;
+  return el.hasAttribute("data-skeleton-ignore") || el.hasAttribute("data-skelion-ignore");
 }
 
 function isLeafNode(el: Element): boolean {
   const tag = el.tagName;
 
-  // Media and input elements are always leaves (self-closing or atomic content)
+  if (isForcedLeaf(el)) return true;
   if (IMAGE_TAGS.has(tag) || INPUT_TAGS.has(tag) || BUTTON_TAGS.has(tag)) return true;
-
-  // No element children → leaf
   if (el.children.length === 0) return true;
 
   return false;
@@ -114,15 +125,33 @@ function isLeafNode(el: Element): boolean {
 function isVisible(el: Element, rect: DOMRect): boolean {
   if (rect.width < 4 || rect.height < 4) return false;
   const style = window.getComputedStyle(el);
-  // Only skip display:none (removes element from layout flow).
-  // visibility:hidden keeps layout intact — needed because the measurement
-  // container uses visibility:hidden to hide children during measurement.
   if (style.display === "none") return false;
   if (style.opacity === "0") return false;
   return true;
 }
 
-// --- Public API ---
+function pushBone(
+  elements: DetectedElement[],
+  el: Element,
+  type: DetectedElementType,
+  rect: DOMRect,
+  rootRect: DOMRect
+) {
+  const circular = type === "circle" || isCircular(el, rect);
+  const radius = circular ? "50%" : readRadius(el);
+
+  elements.push({
+    type: circular ? "circle" : type,
+    rect: {
+      x: rect.left - rootRect.left,
+      y: rect.top - rootRect.top,
+      width: rect.width,
+      height: rect.height,
+    },
+    rounded: circular || hasRounding(el) || BLOCK_TEXT_TAGS.has(el.tagName),
+    radius,
+  });
+}
 
 import type { Density } from "../types";
 
@@ -145,45 +174,34 @@ export function detectElements(
   function walk(el: Element, depth: number) {
     if (depth > maxDepth) return;
     if (SKIP_TAGS.has(el.tagName)) return;
+    if (isIgnored(el)) return;
 
-    // Skip elements with presentational ARIA roles
     const role = el.getAttribute("role");
     if (role && SKIP_ROLES.has(role)) return;
 
+    const style = window.getComputedStyle(el);
+    if (style.display === "none") return;
+
     const rect = el.getBoundingClientRect();
-    if (!isVisible(el, rect)) return;
+    if (!isVisible(el, rect)) {
+      if (el.children.length > 0 && depth < maxDepth) {
+        for (let i = 0; i < el.children.length; i++) {
+          walk(el.children[i], depth + 1);
+        }
+      }
+      return;
+    }
 
     if (isLeafNode(el) || depth === maxDepth) {
       const type = classifyElement(el);
       if (type === "unknown") return;
-
-      const circular = isCircular(el, rect);
-
-      elements.push({
-        type: circular ? "circle" : type,
-        rect: {
-          x: rect.left - rootRect.left,
-          y: rect.top - rootRect.top,
-          width: rect.width,
-          height: rect.height,
-        },
-        rounded: circular || hasRounding(el),
-      });
+      pushBone(elements, el, type, rect, rootRect);
       return;
     }
 
     const children = el.children;
     if (children.length === 0 && el.textContent?.trim()) {
-      elements.push({
-        type: "text",
-        rect: {
-          x: rect.left - rootRect.left,
-          y: rect.top - rootRect.top,
-          width: rect.width,
-          height: rect.height,
-        },
-        rounded: hasRounding(el),
-      });
+      pushBone(elements, el, "text", rect, rootRect);
       return;
     }
 

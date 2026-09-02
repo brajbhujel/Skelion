@@ -1,22 +1,87 @@
 /* ============================================================
-   Skelion v2 — Skeleton CSS System
-   CSS Custom Properties + 4 Animation Variants + Dark Mode
+   Skelion v3 — Skeleton CSS System
+   Light bones, slow shared shimmer, full-width layout, dark mode
    ============================================================ */
 
 /* === Custom Properties === */
 
 :root {
-  --skeleton-color: #e5e7eb;
-  --skeleton-shimmer: rgba(255, 255, 255, 0.4);
-  --skeleton-radius: 4px;
-  --skeleton-duration: 1.5s;
+  --skeleton-light-color: #f0f0f0;
+  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-light-shimmer: #f7f7f7;
+  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-radius: 6px;
+  --skeleton-duration: 2s;
+  --skeleton-angle: 110deg;
+}
+
+/*
+  Resolve color on the skeleton itself, not on :root.
+  Custom properties inherit computed values — if --skeleton-color is
+  substituted on :root, setting --skeleton-light-color on a wrapper is ignored.
+*/
+.skeleton-root,
+.skeleton-node,
+.skeleton-fallback,
+.skelion-wrapper,
+.skelion-node,
+.skelion-fallback {
+  --skeleton-color: var(--skeleton-light-color);
+  --skeleton-shimmer: var(--skeleton-light-shimmer);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --skeleton-color: #374151;
-    --skeleton-shimmer: rgba(255, 255, 255, 0.08);
+  :root:not(.light):not([data-theme="light"]) .skeleton-root,
+  :root:not(.light):not([data-theme="light"]) .skeleton-node,
+  :root:not(.light):not([data-theme="light"]) .skeleton-fallback,
+  :root:not(.light):not([data-theme="light"]) .skelion-wrapper,
+  :root:not(.light):not([data-theme="light"]) .skelion-node,
+  :root:not(.light):not([data-theme="light"]) .skelion-fallback {
+    --skeleton-color: var(--skeleton-dark-color);
+    --skeleton-shimmer: var(--skeleton-dark-shimmer);
   }
+}
+
+.dark .skeleton-root,
+.dark .skeleton-node,
+.dark .skeleton-fallback,
+.dark .skelion-wrapper,
+.dark .skelion-node,
+.dark .skelion-fallback,
+[data-theme="dark"] .skeleton-root,
+[data-theme="dark"] .skeleton-node,
+[data-theme="dark"] .skeleton-fallback,
+[data-theme="dark"] .skelion-wrapper,
+[data-theme="dark"] .skelion-node,
+[data-theme="dark"] .skelion-fallback,
+.skeleton-root.dark {
+  --skeleton-color: var(--skeleton-dark-color);
+  --skeleton-shimmer: var(--skeleton-dark-shimmer);
+}
+
+/* === Root (always full width of parent) === */
+
+.skeleton-root {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* In-flow measurement: children keep natural width (100% of parent),
+   not shrink-wrapped by absolute positioning. */
+.skeleton-measure {
+  width: 100%;
+  max-width: 100%;
+  visibility: hidden;
+  pointer-events: none;
+  box-sizing: border-box;
+}
+
+.skeleton-measure--active {
+  visibility: visible;
+  pointer-events: auto;
 }
 
 /* === Base Node === */
@@ -25,6 +90,7 @@
   background-color: var(--skeleton-color);
   position: absolute;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .skeleton-node--rounded {
@@ -35,11 +101,19 @@
   border-radius: 50%;
 }
 
-/* === Wrapper === */
+.skeleton-node--relative {
+  position: relative;
+}
+
+/* === Wrapper (overlay matching measured layout) === */
 
 .skeleton-wrapper {
   position: relative;
+  width: 100%;
+  max-width: 100%;
   overflow: hidden;
+  pointer-events: none;
+  box-sizing: border-box;
 }
 
 /* === Fallback (SSR / pre-measurement) === */
@@ -52,14 +126,15 @@
   overflow: hidden;
 }
 
-/* === Animation: Pulse (default) === */
+/* === Animation: Pulse === */
 
 @keyframes skeleton-pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.4;
+    opacity: 0.45;
   }
 }
 
@@ -67,26 +142,67 @@
   animation: skeleton-pulse var(--skeleton-duration) ease-in-out infinite;
 }
 
-/* === Animation: Shimmer === */
+/* === Animation: Shimmer
+     Narrow highlight, 110deg, linear, 2s.
+     background-size is wide so the band crawls instead of flashing. === */
 
 @keyframes skeleton-shimmer {
   0% {
-    background-position: -200% 0;
+    background-position: 140% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -40% 0;
   }
 }
 
 .skeleton-animate-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--skeleton-color) 0%,
+  background-color: var(--skeleton-color);
+  background-image: linear-gradient(
+    var(--skeleton-angle, 110deg),
+    var(--skeleton-color) 36%,
     var(--skeleton-shimmer) 50%,
-    var(--skeleton-color) 100%
+    var(--skeleton-color) 64%
   );
-  background-size: 200% 100%;
-  animation: skeleton-shimmer var(--skeleton-duration) ease-in-out infinite;
+  background-size: 240% 100%;
+  background-repeat: no-repeat;
+  animation: skeleton-shimmer var(--skeleton-duration) linear infinite;
+}
+
+/* Unified sweep across all bones in an auto-skeleton */
+.skeleton-wrapper--shimmer .skeleton-node {
+  background-color: var(--skeleton-color);
+  background-image: none;
+  animation: none;
+}
+
+.skeleton-wrapper--shimmer .skeleton-node.skeleton-animate-pulse {
+  animation: skeleton-pulse var(--skeleton-duration) ease-in-out infinite;
+}
+
+.skeleton-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(
+    var(--skeleton-angle, 110deg),
+    transparent 0%,
+    var(--skeleton-shimmer) 50%,
+    transparent 100%
+  );
+  animation: skeleton-shine-sweep var(--skeleton-duration) linear infinite;
+}
+
+@keyframes skeleton-shine-sweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(280%);
+  }
 }
 
 /* === Animation: Wave === */
@@ -103,6 +219,7 @@
 .skeleton-animate-wave {
   position: relative;
   overflow: hidden;
+  background-color: var(--skeleton-color);
 }
 
 .skeleton-animate-wave::after {
@@ -110,24 +227,52 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(
-    90deg,
+    var(--skeleton-angle, 110deg),
     transparent,
     var(--skeleton-shimmer),
     transparent
   );
-  animation: skeleton-wave var(--skeleton-duration) ease-in-out infinite;
+  animation: skeleton-wave var(--skeleton-duration) linear infinite;
+}
+
+.skeleton-wrapper--wave .skeleton-node::after {
+  animation: none;
+}
+
+.skeleton-wrapper--wave .skeleton-shine {
+  width: 50%;
 }
 
 /* === Animation: Solid (no animation) === */
 
 .skeleton-animate-solid {
-  /* Static — no animation applied */
+  background-color: var(--skeleton-color);
 }
 
-/* === SSR Boneyard: disable animations until hydrated === */
+/* === Loading exit fade === */
+
+.skeleton-wrapper--exit {
+  opacity: 0;
+  transition: opacity var(--skeleton-exit, 300ms) cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+/* === Reduced motion === */
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-animate-pulse,
+  .skeleton-animate-shimmer,
+  .skeleton-animate-wave,
+  .skeleton-animate-wave::after,
+  .skeleton-shine {
+    animation: none !important;
+  }
+}
+
+/* === SSR: disable animations until hydrated === */
 
 .skeleton-ssr .skeleton-node,
-.skeleton-ssr .skeleton-fallback {
+.skeleton-ssr .skeleton-fallback,
+.skeleton-ssr .skeleton-shine {
   animation: none !important;
 }
 
@@ -138,7 +283,6 @@
 
 /* ============================================================
    Backward Compatibility — skelion-* class aliases
-   Maps v1 class names to v2 styles for users upgrading.
    ============================================================ */
 
 .skelion-node {
@@ -158,6 +302,7 @@
 .skelion-wrapper {
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .skelion-fallback {
@@ -168,33 +313,22 @@
   overflow: hidden;
 }
 
-/* Legacy shimmer animation alias */
 @keyframes skelion-shimmer {
   0% {
-    background-position: -200% 0;
+    background-position: 140% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -40% 0;
   }
 }
 
 .skelion-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--skeleton-color) 0%,
+  background-image: linear-gradient(
+    var(--skeleton-angle, 110deg),
+    var(--skeleton-color) 36%,
     var(--skeleton-shimmer) 50%,
-    var(--skeleton-color) 100%
+    var(--skeleton-color) 64%
   );
-  background-size: 200% 100%;
-  animation: skelion-shimmer var(--skeleton-duration) ease-in-out infinite;
-}
-
-@media (prefers-color-scheme: dark) {
-  .skelion-node {
-    background-color: var(--skeleton-color);
-  }
-
-  .skelion-fallback {
-    background-color: var(--skeleton-color);
-  }
+  background-size: 240% 100%;
+  animation: skelion-shimmer var(--skeleton-duration) linear infinite;
 }

@@ -56,17 +56,14 @@ npx skelion init
 The generated config file:
 
 ```ts title="skelion.config.ts"
-import type { SkelionConfig } from "skelion";
+import type { SkeletonConfig } from "skelion";
 
-const config: SkelionConfig = {
-  // Default animation style: "pulse" | "shimmer" | "wave" | "solid"
+const config: SkeletonConfig = {
   animation: "pulse",
-
-  // DOM traversal depth: "low" | "medium" | "high"
   density: "medium",
-
-  // Animation duration in seconds
-  duration: 1.5,
+  duration: 2,
+  color: "#f0f0f0",
+  shimmerAngle: 110,
 };
 
 export default config;

@@ -1,21 +1,21 @@
 import React from "react";
-import type { AnimationVariant, SkeletonCircleProps } from "../types";
-
-function getAnimationClass(animation: AnimationVariant): string {
-  return `skeleton-animate-${animation}`;
-}
+import type { SkeletonCircleProps } from "../types";
+import { useResolvedAnimation, useResolvedDuration } from "../context";
 
 export const SkeletonCircle: React.FC<SkeletonCircleProps> = ({
   size = 48,
-  animation = "pulse",
-  duration = 1.5,
+  animation: animationProp,
+  duration: durationProp,
   className,
   style,
 }) => {
+  const animation = useResolvedAnimation(animationProp);
+  const duration = useResolvedDuration(durationProp, animation);
   const classes = [
     "skeleton-node",
+    "skeleton-node--relative",
     "skeleton-node--circle",
-    getAnimationClass(animation),
+    `skeleton-animate-${animation}`,
     className ?? "",
   ]
     .filter(Boolean)
@@ -26,9 +26,9 @@ export const SkeletonCircle: React.FC<SkeletonCircleProps> = ({
       className={classes}
       aria-hidden="true"
       style={{
-        position: "relative",
         width: size,
         height: size,
+        flexShrink: 0,
         "--skeleton-duration": `${duration}s`,
         ...style,
       } as React.CSSProperties}

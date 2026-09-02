@@ -8,7 +8,7 @@ sidebar_position: 7
 
 ```tsx
 import { useState, useEffect } from "react";
-import { Skeleton } from "skelion";
+import { Skeleton, SkeletonProvider } from "skelion";
 import "skelion/styles.css";
 
 function ProductList() {
@@ -25,6 +25,7 @@ function ProductList() {
   }, []);
 
   return (
+    <SkeletonProvider animation="shimmer" duration={2}>
     <div className="grid grid-cols-3 gap-4">
       {loading
         ? Array.from({ length: 6 }, (_, i) => (
@@ -34,6 +35,7 @@ function ProductList() {
             <ProductCard key={product.id} product={product} />
           ))}
     </div>
+    </SkeletonProvider>
   );
 }
 ```

@@ -8,10 +8,10 @@ The auto-skeleton feature is Skelion's core differentiator. Instead of manually 
 
 ## How It Works
 
-1. When `loading={true}`, Skelion renders your children in a hidden container
+1. When `loading={true}`, Skelion renders your children (or `fixture`) in a **full-width** hidden layer
 2. It measures each element's position and size using `getBoundingClientRect()`
-3. It classifies elements by type (text, image, button, input, etc.)
-4. It generates skeleton nodes that exactly match the layout
+3. It classifies elements by type (text, image, button, input, etc.) and copies `border-radius`
+4. It generates skeleton nodes that match the layout, stretched to `width: 100%` of the parent
 5. A `ResizeObserver` keeps skeletons in sync if the layout changes
 
 ```tsx
@@ -68,3 +68,7 @@ Skelion automatically skips:
 - Elements with `opacity: 0`
 - Elements smaller than 4px
 - `<script>`, `<style>`, `<template>` tags
+- Elements with `data-skeleton="ignore"`
+
+Force a container to be a single bone with `data-skeleton="leaf"`.
+

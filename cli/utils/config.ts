@@ -1,22 +1,20 @@
 import * as fs from "fs";
 import * as path from "path";
+import type { SkeletonConfig } from "../../src/types";
 
-export interface SkelionConfig {
-  animation?: "pulse" | "shimmer" | "wave" | "solid";
-  density?: "low" | "medium" | "high";
-  duration?: number;
-}
+export type { SkeletonConfig as SkelionConfig };
 
-const DEFAULT_CONFIG: SkelionConfig = {
+const DEFAULT_CONFIG: SkeletonConfig = {
   animation: "pulse",
   density: "medium",
-  duration: 1.5,
+  duration: 2,
+  color: "#f0f0f0",
+  shimmerAngle: 110,
 };
 
-export function loadConfig(): SkelionConfig {
+export function loadConfig(): SkeletonConfig {
   const cwd = process.cwd();
 
-  // Try skelion.config.js first (works without TypeScript compilation)
   const jsConfigPath = path.join(cwd, "skelion.config.js");
   if (fs.existsSync(jsConfigPath)) {
     try {
@@ -27,11 +25,9 @@ export function loadConfig(): SkelionConfig {
     }
   }
 
-  // Try skelion.config.ts (requires ts-node or similar)
   const tsConfigPath = path.join(cwd, "skelion.config.ts");
   if (fs.existsSync(tsConfigPath)) {
     try {
-      // Attempt direct require (works if ts-node is registered)
       const config = require(tsConfigPath);
       return { ...DEFAULT_CONFIG, ...(config.default || config) };
     } catch {

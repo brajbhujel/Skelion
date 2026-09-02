@@ -27,8 +27,9 @@ Instead of manually building skeleton screens that drift out of sync with your U
 - **Preset Variants** — Text, avatar, card, and image presets out of the box
 - **Sub-Components** — `Skeleton.Text`, `Skeleton.Circle`, `Skeleton.Block`, `Skeleton.Image` for manual control
 - **CLI Tool** — `npx skelion init` and `npx skelion generate` for quick setup
-- **CSS Variables** — Full theming with `--skeleton-color`, `--skeleton-radius`, etc.
-- **Dark Mode** — Automatic dark mode via `prefers-color-scheme`
+- **CSS Variables** — Full theming with `--skeleton-color`, `--skeleton-radius`, `--skeleton-duration`, `--skeleton-angle`
+- **Dark Mode** — `.dark`, `[data-theme="dark"]`, or `prefers-color-scheme`
+- **Provider** — `<SkeletonProvider />` for app-wide color, speed, and animation
 - **TypeScript-First** — Full type safety with autocomplete-friendly props
 - **Tree-Shakable** — Only import what you use
 

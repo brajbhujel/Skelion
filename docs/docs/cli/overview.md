@@ -33,12 +33,14 @@ npx skelion generate profile --name User --animation shimmer
 The `init` command creates a `skelion.config.ts` file in your project root:
 
 ```ts title="skelion.config.ts"
-import type { SkelionConfig } from "skelion";
+import type { SkeletonConfig } from "skelion";
 
-const config: SkelionConfig = {
+const config: SkeletonConfig = {
   animation: "pulse",
   density: "medium",
-  duration: 1.5,
+  duration: 2,
+  color: "#f0f0f0",
+  shimmerAngle: 110,
 };
 
 export default config;

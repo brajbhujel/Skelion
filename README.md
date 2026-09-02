@@ -4,6 +4,17 @@
 
 Skelion reads your actual component layout and generates pixel-perfect skeleton placeholders automatically. No manual skeleton building needed.
 
+## What’s new in v3
+
+v3 is a visual and layout overhaul:
+
+- **Full width** — the skeleton root and measurement layer are always `width: 100%`. Bones no longer shrink-wrap to text.
+- **Slower shimmer** — `2s` linear sweep at **110deg**, with a narrow highlight. Default pulse is `1.8s`.
+- **Lighter bones** — `#f0f0f0` in light mode, `rgba(255,255,255,0.08)` in dark. Not gray-200 slabs.
+- **Dark mode** — `.dark`, `[data-theme="dark"]`, and `prefers-color-scheme`.
+- **Boneyard-class DX** — `color`, `darkColor`, `shimmerColor`, `stagger`, `transition`, `fixture`, `fallback`, `boneClass`, and `<SkeletonProvider />`.
+- **`prefers-reduced-motion`** — animations disable automatically.
+
 ## Features
 
 - **DOM-Aware Auto Skeleton** — reads real layout via `getBoundingClientRect`
@@ -13,7 +24,7 @@ Skelion reads your actual component layout and generates pixel-perfect skeleton 
 - **Preset Variants** — text, avatar, card, image
 - **Sub-Components** — `Skeleton.Text`, `Skeleton.Circle`, `Skeleton.Block`, `Skeleton.Image`
 - **CLI Tool** — `npx skelion init` and `npx skelion generate`
-- **Dark Mode** — automatic via `prefers-color-scheme`
+- **Dark Mode** — `.dark` class, `data-theme`, or `prefers-color-scheme`
 - **TypeScript-First** — full type safety with autocomplete-friendly props
 - **Tree-Shakable** — ESM + CJS dual output, minimal dependencies
 
@@ -45,7 +56,7 @@ import "skelion/styles.css";
 
 function UserProfile({ user, loading }) {
   return (
-    <Skeleton loading={loading}>
+    <Skeleton loading={loading} animation="shimmer">
       <div className="profile">
         <img src={user.avatar} alt={user.name} />
         <h2>{user.name}</h2>
@@ -54,6 +65,27 @@ function UserProfile({ user, loading }) {
     </Skeleton>
   );
 }
+```
+
+If the component collapses without data, pass a `fixture` so Skelion can still measure a full-width layout:
+
+```tsx
+<Skeleton
+  loading={isLoading}
+  fixture={<UserCard user={PLACEHOLDER} />}
+>
+  {user && <UserCard user={user} />}
+</Skeleton>
+```
+
+### Global defaults
+
+```tsx
+import { Skeleton, SkeletonProvider } from "skelion";
+
+<SkeletonProvider animation="shimmer" duration={2} color="#f0f0f0">
+  <App />
+</SkeletonProvider>
 ```
 
 ### Preset Variants
@@ -99,9 +131,9 @@ import { Skeleton } from "skelion";
 
 function CustomSkeleton() {
   return (
-    <div style={{ display: "flex", gap: 12 }}>
+    <div style={{ display: "flex", gap: 12, width: "100%" }}>
       <Skeleton.Circle size={48} animation="shimmer" />
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <Skeleton.Text width="60%" height={16} animation="shimmer" />
         <Skeleton.Text width="100%" height={14} lines={2} animation="shimmer" />
       </div>
@@ -118,7 +150,7 @@ function CustomSkeleton() {
 </Skeleton>
 ```
 
-The `ssr` prop enables the Boneyard Pattern: server renders static markup, client hydrates identically, then animations activate after hydration. Zero hydration mismatches.
+The `ssr` prop enables static markup on the server. The client hydrates identically, then animations activate after hydration. Zero hydration mismatches.
 
 ## Props
 
@@ -126,7 +158,17 @@ The `ssr` prop enables the Boneyard Pattern: server renders static markup, clien
 |------|------|---------|-------------|
 | `loading` | `boolean` | — | Whether to show the skeleton |
 | `animation` | `"pulse" \| "shimmer" \| "wave" \| "solid"` | `"pulse"` | Animation style |
-| `duration` | `number` | `1.5` | Animation duration in seconds |
+| `duration` | `number` | `2` (`1.8` for pulse) | Animation duration in seconds |
+| `color` | `string` | `#f0f0f0` | Bone fill (light) |
+| `darkColor` | `string` | `rgba(255,255,255,0.08)` | Bone fill (dark) |
+| `shimmerColor` | `string` | — | Shimmer highlight (light) |
+| `darkShimmerColor` | `string` | — | Shimmer highlight (dark) |
+| `shimmerAngle` | `number` | `110` | Shimmer gradient angle |
+| `stagger` | `number \| boolean` | `false` | Delay between bones in ms (`true` = 80) |
+| `transition` | `number \| boolean` | `false` | Fade out when loading ends (`true` = 300) |
+| `fixture` | `ReactNode` | — | Mock layout to measure while loading |
+| `fallback` | `ReactNode` | — | Shown before bones are measured |
+| `boneClass` | `string` | — | Class on each generated bone |
 | `density` | `"low" \| "medium" \| "high"` | `"medium"` | DOM traversal depth |
 | `variant` | `"auto" \| "text" \| "avatar" \| "card" \| "image" \| "custom"` | `"auto"` | Skeleton variant |
 | `ssr` | `boolean` | `false` | Enable SSR-safe rendering |
@@ -137,14 +179,19 @@ The `ssr` prop enables the Boneyard Pattern: server renders static markup, clien
 | `as` | `React.ElementType` | `"div"` | Wrapper element type |
 | `style` | `React.CSSProperties` | — | Wrapper inline style |
 
+Skip an element during capture with `data-skeleton="ignore"`. Treat a container as one bone with `data-skeleton="leaf"`.
+
 ## CSS Variables
 
 ```css
 :root {
-  --skeleton-color: #e5e7eb;
-  --skeleton-shimmer: rgba(255, 255, 255, 0.4);
-  --skeleton-radius: 4px;
-  --skeleton-duration: 1.5s;
+  --skeleton-light-color: #f0f0f0;
+  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-light-shimmer: #f7f7f7;
+  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-radius: 6px;
+  --skeleton-duration: 2s;
+  --skeleton-angle: 110deg;
 }
 ```
 
@@ -162,15 +209,13 @@ npx skelion generate table --output ./src/skeletons
 
 Available templates: `card`, `list`, `profile`, `table`.
 
-## Migration from v1
+## Migration from v2
 
-If upgrading from v1, the main changes are:
-
-- `<Skelion />` → `<Skeleton />` (old name still works with deprecation warning)
-- `shimmer={true}` → `animation="shimmer"` (default is now `"pulse"`)
-- CSS classes: `skelion-*` → `skeleton-*` (old classes still supported)
-
-See the full [migration guide](docs/docs/migration-v2.md).
+- Default bone color is now `#f0f0f0` (was `#e5e7eb`)
+- Default duration is `2s` (was `1.5s`); shimmer easing is `linear`
+- Wrapper is always `width: 100%`
+- `<Skelion />` still works with a deprecation warning
+- See the [v3 migration guide](docs/docs/migration-v3.md)
 
 ## Development
 

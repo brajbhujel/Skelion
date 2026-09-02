@@ -56,7 +56,7 @@ function HomepageHeader() {
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
         <div style={{marginBottom: 12, opacity: 0.5, fontSize: '0.85rem', fontFamily: 'var(--ifm-font-family-base)', letterSpacing: '0.1em', textTransform: 'uppercase'}}>
-          Open Source
+          Open Source · v3
         </div>
         <Heading as="h1" className="hero__title">
           {siteConfig.title}

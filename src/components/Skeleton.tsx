@@ -1,19 +1,24 @@
 import React, { useMemo } from "react";
 import { useLayoutMeasure } from "../hooks/useLayoutMeasure";
 import { useSSRSkeleton } from "../hooks/useSSRSkeleton";
+import { useLoadingTransition } from "../hooks/useLoadingTransition";
 import { generateSkeleton } from "../utils/generateSkeleton";
+import { buildThemeStyle } from "../utils/theme";
 import { SkeletonNodeComponent } from "./SkeletonNode";
 import { SkeletonText } from "./SkeletonText";
 import { SkeletonCircle } from "./SkeletonCircle";
 import { SkeletonBlock } from "./SkeletonBlock";
 import { SkeletonImage } from "./SkeletonImage";
-import type {
-  SkeletonProps,
-  AnimationVariant,
-  Variant,
-} from "../types";
-
-// --- Variant presets ---
+import { useSkeletonContext } from "../context";
+import {
+  DEFAULT_ANIMATION,
+  DEFAULT_DENSITY,
+  DEFAULT_SHIMMER_ANGLE,
+  DEFAULT_STAGGER_MS,
+  durationFor,
+  resolveMs,
+} from "../defaults";
+import type { SkeletonProps, AnimationVariant, Variant } from "../types";
 
 function renderPresetSkeleton(
   variant: Variant,
@@ -23,7 +28,7 @@ function renderPresetSkeleton(
   switch (variant) {
     case "text":
       return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
           <SkeletonText animation={animation} duration={duration} width="100%" height={14} />
           <SkeletonText animation={animation} duration={duration} width="90%" height={14} />
           <SkeletonText animation={animation} duration={duration} width="75%" height={14} />
@@ -31,9 +36,9 @@ function renderPresetSkeleton(
       );
     case "avatar":
       return (
-        <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, width: "100%" }}>
           <SkeletonCircle animation={animation} duration={duration} size={48} />
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, flex: 1, minWidth: 0, width: "100%" }}>
             <SkeletonText animation={animation} duration={duration} width="60%" height={14} />
             <SkeletonText animation={animation} duration={duration} width="40%" height={12} />
           </div>
@@ -41,7 +46,7 @@ function renderPresetSkeleton(
       );
     case "card":
       return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
           <SkeletonBlock animation={animation} duration={duration} width="100%" height={160} />
           <SkeletonText animation={animation} duration={duration} width="70%" height={18} />
           <SkeletonText animation={animation} duration={duration} width="100%" height={14} />
@@ -57,48 +62,113 @@ function renderPresetSkeleton(
   }
 }
 
-// --- Main Skeleton component ---
-
-const SkeletonMain: React.FC<SkeletonProps> = ({
-  loading,
+function MeasureSlot({
+  containerRef,
   children,
-  animation = "pulse",
-  duration = 1.5,
-  density = "medium",
-  rounded: _rounded,
-  className,
-  as: Wrapper = "div",
-  variant,
-  ssr = false,
-  width,
-  height,
-  style,
-}) => {
-  // Resolve effective variant
-  const effectiveVariant: Variant = variant ?? (children ? "auto" : "custom");
+  hidden = true,
+}: {
+  containerRef: React.RefObject<HTMLDivElement>;
+  children: React.ReactNode;
+  hidden?: boolean;
+}) {
+  return (
+    <div
+      ref={containerRef}
+      className="skeleton-measure"
+      style={{
+        visibility: hidden ? "hidden" : "visible",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: "100%",
+        maxWidth: "100%",
+        pointerEvents: hidden ? "none" : "auto",
+      }}
+      aria-hidden={hidden ? "true" : undefined}
+    >
+      {children}
+    </div>
+  );
+}
 
+const SkeletonMain: React.FC<SkeletonProps> = (props) => {
+  const ctx = useSkeletonContext();
+
+  const loading = props.loading;
+  const children = props.children;
+  const fixture = props.fixture;
+  const fallback = props.fallback;
+  const animation = props.animation ?? ctx.animation ?? DEFAULT_ANIMATION;
+  const duration = durationFor(animation, props.duration ?? ctx.duration);
+  const density = props.density ?? ctx.density ?? DEFAULT_DENSITY;
+  const rounded = props.rounded ?? ctx.rounded;
+  const className = props.className;
+  const Wrapper = props.as ?? "div";
+  const variant = props.variant;
+  const ssr = props.ssr ?? false;
+  const width = props.width;
+  const height = props.height;
+  const style = props.style;
+  const boneClass = props.boneClass;
+  const color = props.color ?? ctx.color;
+  const darkColor = props.darkColor ?? ctx.darkColor;
+  const shimmerColor = props.shimmerColor ?? ctx.shimmerColor;
+  const darkShimmerColor = props.darkShimmerColor ?? ctx.darkShimmerColor;
+  const shimmerAngle = props.shimmerAngle ?? ctx.shimmerAngle ?? DEFAULT_SHIMMER_ANGLE;
+  const stagger = props.stagger ?? ctx.stagger;
+  const transition = props.transition ?? ctx.transition;
+
+  const effectiveVariant: Variant = variant ?? (children || fixture ? "auto" : "custom");
   const { isSSR, ssrClassName } = useSSRSkeleton(ssr);
+  const { showSkeleton, exiting, exitMs } = useLoadingTransition(loading, transition);
+  const staggerMs = resolveMs(stagger, DEFAULT_STAGGER_MS);
+
+  const measureEnabled =
+    showSkeleton && effectiveVariant === "auto" && !isSSR;
 
   const { containerRef, elements, measured, containerSize } = useLayoutMeasure({
-    enabled: loading && effectiveVariant === "auto" && !isSSR,
+    enabled: measureEnabled,
     density,
   });
 
   const skeletonNodes = useMemo(
-    () => generateSkeleton(elements),
-    [elements]
+    () => generateSkeleton(elements, { rounded }),
+    [elements, rounded]
   );
 
-  // Not loading — render children normally
-  if (!loading) {
+  const themeStyle = buildThemeStyle(
+    {
+      color,
+      darkColor,
+      shimmerColor,
+      darkShimmerColor,
+      shimmerAngle,
+      duration,
+      animation,
+    },
+    {
+      ...(exitMs ? ({ "--skeleton-exit": `${exitMs}ms` } as React.CSSProperties) : {}),
+      ...style,
+    }
+  );
+
+  const measureContent = fixture ?? children;
+
+  if (!showSkeleton) {
     return <>{children}</>;
   }
+
+  const rootClass = ["skeleton-root", ssrClassName, className ?? ""]
+    .filter(Boolean)
+    .join(" ");
 
   // Custom variant with width/height (simple skeleton, no children)
   if (effectiveVariant === "custom" && (width || height)) {
     const animClass = `skeleton-animate-${animation}`;
     const classes = [
+      "skeleton-root",
       "skeleton-node",
+      "skeleton-node--relative",
       "skeleton-node--rounded",
       animClass,
       ssrClassName,
@@ -114,129 +184,105 @@ const SkeletonMain: React.FC<SkeletonProps> = ({
         role="status"
         aria-label="Loading content"
         style={{
-          position: "relative",
+          ...themeStyle,
           width: width ?? "100%",
           height: height ?? 20,
-          "--skeleton-duration": `${duration}s`,
-          ...style,
-        } as React.CSSProperties}
+        }}
       />
     );
   }
 
   // Non-auto preset variants
   if (effectiveVariant !== "auto" && effectiveVariant !== "custom") {
-    const wrapperClasses = [ssrClassName, className ?? ""]
-      .filter(Boolean)
-      .join(" ") || undefined;
-
     return (
       <Wrapper
-        className={wrapperClasses}
+        className={rootClass}
         aria-busy="true"
         role="status"
         aria-label="Loading content"
-        style={style}
+        style={themeStyle}
       >
         {renderPresetSkeleton(effectiveVariant, animation, duration)}
       </Wrapper>
     );
   }
 
-  // SSR or not yet measured — show fallback with hidden children for measurement
-  if (isSSR || !measured) {
-    const fallbackAnimClass = `skeleton-animate-${animation}`;
-    const wrapperClasses = [ssrClassName, className ?? ""]
-      .filter(Boolean)
-      .join(" ") || undefined;
+  const showShine = animation === "shimmer" || animation === "wave";
+  const wrapperAnimClass =
+    animation === "shimmer"
+      ? "skeleton-wrapper--shimmer"
+      : animation === "wave"
+        ? "skeleton-wrapper--wave"
+        : "";
 
+  // SSR or not yet measured
+  if (isSSR || !measured) {
     return (
       <Wrapper
-        className={wrapperClasses}
+        className={rootClass}
         aria-busy="true"
         role="status"
         aria-label="Loading content"
-        style={style}
+        style={themeStyle}
       >
-        {/* Hidden children for measurement */}
-        <div
-          ref={containerRef}
-          style={{
-            visibility: "hidden",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            pointerEvents: "none",
-          }}
-          aria-hidden="true"
-        >
-          {children}
-        </div>
-        {/* Fallback skeleton during SSR / pre-measurement */}
-        <div
-          className={`skeleton-fallback ${fallbackAnimClass}`}
-          style={{
-            "--skeleton-duration": `${duration}s`,
-          } as React.CSSProperties}
-        />
+        <MeasureSlot containerRef={containerRef}>{measureContent}</MeasureSlot>
+        {fallback ?? (
+          <div
+            className={`skeleton-fallback skeleton-animate-${animation}`}
+            style={{ "--skeleton-duration": `${duration}s` } as React.CSSProperties}
+          />
+        )}
       </Wrapper>
     );
   }
 
-  // Measured — render layout-aware skeleton
-  const wrapperClasses = [ssrClassName, className ?? ""]
-    .filter(Boolean)
-    .join(" ") || undefined;
-
   return (
     <Wrapper
-      className={wrapperClasses}
+      className={rootClass}
       aria-busy="true"
       role="status"
       aria-label="Loading content"
-      style={style}
+      style={themeStyle}
     >
-      {/* Keep hidden children for re-measurement on resize */}
+      <MeasureSlot containerRef={containerRef} hidden={!exiting}>
+        {exiting ? children : measureContent}
+      </MeasureSlot>
       <div
-        ref={containerRef}
+        className={[
+          "skeleton-wrapper",
+          wrapperAnimClass,
+          exiting ? "skeleton-wrapper--exit" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         style={{
-          visibility: "hidden",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          pointerEvents: "none",
-        }}
-        aria-hidden="true"
-      >
-        {children}
-      </div>
-      {/* Skeleton overlay */}
-      <div
-        className="skeleton-wrapper"
-        style={{
-          width: containerSize.width || "100%",
+          position: "relative",
+          width: "100%",
           height: containerSize.height || undefined,
           minHeight: containerSize.height || 100,
         }}
       >
-        {skeletonNodes.map((node) => (
-          <SkeletonNodeComponent
-            key={node.id}
-            node={node}
-            animation={animation}
-            duration={duration}
-          />
-        ))}
+        {skeletonNodes.map((node, index) => (
+              <SkeletonNodeComponent
+                key={node.id}
+                node={node}
+                animation={animation}
+                duration={duration}
+                className={boneClass}
+                index={index}
+                staggerMs={staggerMs}
+                forceRounded={rounded}
+              />
+            ))}
+        {showShine && skeletonNodes.length > 0 ? (
+          <div className="skeleton-shine" aria-hidden="true" />
+        ) : null}
       </div>
     </Wrapper>
   );
 };
 
 SkeletonMain.displayName = "Skeleton";
-
-// --- Compose final export with sub-components ---
 
 type SkeletonComponent = React.FC<SkeletonProps> & {
   Text: typeof SkeletonText;

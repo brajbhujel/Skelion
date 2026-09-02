@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
     },
     'examples',
     'migration-v2',
+    'migration-v3',
   ],
 };
 

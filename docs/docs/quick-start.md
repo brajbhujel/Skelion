@@ -26,7 +26,16 @@ function ProductCard({ product, loading }) {
 }
 ```
 
-Skelion reads the DOM structure of your component and generates skeleton placeholders that match each element's exact position and dimensions.
+Skelion reads the DOM structure of your component and generates skeleton placeholders that match each element's exact position and dimensions. The wrapper is always `width: 100%` of its parent.
+
+If children would collapse without data, pass a fixture so measurement still sees a full layout:
+
+```tsx
+<Skeleton loading={isLoading} fixture={<ProductCard product={PLACEHOLDER} />}>
+  {product && <ProductCard product={product} />}
+</Skeleton>
+```
+
 
 ## 2. Preset Variants
 

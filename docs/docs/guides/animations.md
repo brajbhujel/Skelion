@@ -4,13 +4,13 @@ sidebar_position: 2
 
 # Animations
 
-Skelion provides 4 animation styles for skeleton loading states.
+Skelion provides 4 animation styles. Defaults are tuned so motion feels like a load state, not a strobe: **2s linear shimmer** at **110deg**, **1.8s pulse**.
 
 ## Animation Variants
 
 ### Pulse (Default)
 
-A gentle opacity fade. Industry standard, least distracting.
+A gentle opacity fade. Least distracting.
 
 ```tsx
 <Skeleton loading={true} animation="pulse">
@@ -20,7 +20,7 @@ A gentle opacity fade. Industry standard, least distracting.
 
 ### Shimmer
 
-A gradient that slides across the skeleton. Classic skeleton loader effect.
+A narrow highlight that crawls across the bones. Shared across an auto-skeleton so small text lines don't flash faster than large blocks.
 
 ```tsx
 <Skeleton loading={true} animation="shimmer">
@@ -30,7 +30,7 @@ A gradient that slides across the skeleton. Classic skeleton loader effect.
 
 ### Wave
 
-A wave of light that sweeps across using a `::after` pseudo-element.
+A light band sweeping via a `::after` pseudo-element.
 
 ```tsx
 <Skeleton loading={true} animation="wave">
@@ -40,7 +40,7 @@ A wave of light that sweeps across using a `::after` pseudo-element.
 
 ### Solid
 
-No animation — just a static placeholder. Useful for reduced-motion preferences or when you want a simple placeholder.
+No animation — a static placeholder. Also used automatically when the user has `prefers-reduced-motion: reduce`.
 
 ```tsx
 <Skeleton loading={true} animation="solid">
@@ -50,65 +50,47 @@ No animation — just a static placeholder. Useful for reduced-motion preference
 
 ## Custom Duration
 
-Control animation speed with the `duration` prop (in seconds):
+Duration is in seconds. Default is `2`. Pulse uses `1.8` unless you override.
 
 ```tsx
-// Slower animation (2.5 seconds)
-<Skeleton loading={true} duration={2.5}>
-  <YourComponent />
-</Skeleton>
-
-// Faster animation (0.8 seconds)
-<Skeleton loading={true} duration={0.8}>
+<Skeleton loading={true} animation="shimmer" duration={2.4}>
   <YourComponent />
 </Skeleton>
 ```
-
-You can also set duration globally via CSS:
 
 ```css
 :root {
   --skeleton-duration: 2s;
+  --skeleton-angle: 110deg;
 }
 ```
 
-## Sub-Component Animations
-
-Each sub-component also accepts the `animation` prop:
+## Stagger and exit fade
 
 ```tsx
-<div style={{ display: "flex", gap: 12 }}>
-  <Skeleton.Circle size={48} animation="shimmer" />
-  <div>
-    <Skeleton.Text width="200px" animation="shimmer" />
-    <Skeleton.Text width="150px" animation="shimmer" />
-  </div>
-</div>
+<Skeleton
+  loading={loading}
+  animation="shimmer"
+  stagger={80}
+  transition={300}
+>
+  <Feed />
+</Skeleton>
 ```
 
-## Respecting Reduced Motion
+- `stagger` — delay between bones (`true` = 80ms)
+- `transition` — fade the skeleton out when `loading` becomes false (`true` = 300ms)
 
-For users who prefer reduced motion, you can use CSS:
+## Reduced motion
+
+Built in. No extra CSS required:
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  :root {
-    --skeleton-duration: 0s;
+  .skeleton-animate-pulse,
+  .skeleton-animate-shimmer,
+  .skeleton-shine {
+    animation: none !important;
   }
 }
-```
-
-Or conditionally set the animation:
-
-```tsx
-const prefersReducedMotion = window.matchMedia(
-  "(prefers-reduced-motion: reduce)"
-).matches;
-
-<Skeleton
-  loading={loading}
-  animation={prefersReducedMotion ? "solid" : "pulse"}
->
-  <YourComponent />
-</Skeleton>
 ```

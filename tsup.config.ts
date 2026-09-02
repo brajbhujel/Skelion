@@ -1,5 +1,5 @@
 import { defineConfig } from "tsup";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, copyFileSync } from "fs";
 import { resolve } from "path";
 
 function prependUseClient() {
@@ -28,6 +28,10 @@ export default defineConfig([
     injectStyle: false,
     onSuccess: async () => {
       prependUseClient();
+      const cssSrc = resolve("src/styles/skeleton.css");
+      if (existsSync(cssSrc)) {
+        copyFileSync(cssSrc, resolve("dist/skeleton.css"));
+      }
     },
   },
   // CLI build

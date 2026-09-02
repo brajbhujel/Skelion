@@ -10,9 +10,8 @@ let warned = false;
 const SkelionMain: React.FC<SkeletonProps> = (props) => {
   if (!warned && typeof console !== "undefined") {
     console.warn(
-      "[skelion] <Skelion /> is deprecated and will be removed in v3. " +
-      "Please use <Skeleton /> instead. " +
-      "See migration guide: https://github.com/rajbhujell/Skelion#migration-v2"
+      "[skelion] <Skelion /> is deprecated. Use <Skeleton /> instead. " +
+      "See https://github.com/brajbhujel/Skelion#migration-from-v2"
     );
     warned = true;
   }

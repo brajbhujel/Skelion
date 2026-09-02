@@ -1,23 +1,23 @@
 import React from "react";
-import type { AnimationVariant, SkeletonBlockProps } from "../types";
-
-function getAnimationClass(animation: AnimationVariant): string {
-  return `skeleton-animate-${animation}`;
-}
+import type { SkeletonBlockProps } from "../types";
+import { useResolvedAnimation, useResolvedDuration } from "../context";
 
 export const SkeletonBlock: React.FC<SkeletonBlockProps> = ({
   width = "100%",
   height = 100,
   rounded = true,
-  animation = "pulse",
-  duration = 1.5,
+  animation: animationProp,
+  duration: durationProp,
   className,
   style,
 }) => {
+  const animation = useResolvedAnimation(animationProp);
+  const duration = useResolvedDuration(durationProp, animation);
   const classes = [
     "skeleton-node",
+    "skeleton-node--relative",
     rounded ? "skeleton-node--rounded" : "",
-    getAnimationClass(animation),
+    `skeleton-animate-${animation}`,
     className ?? "",
   ]
     .filter(Boolean)
@@ -28,7 +28,6 @@ export const SkeletonBlock: React.FC<SkeletonBlockProps> = ({
       className={classes}
       aria-hidden="true"
       style={{
-        position: "relative",
         width,
         height,
         "--skeleton-duration": `${duration}s`,

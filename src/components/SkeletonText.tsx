@@ -1,24 +1,24 @@
 import React from "react";
-import type { AnimationVariant, SkeletonTextProps } from "../types";
-
-function getAnimationClass(animation: AnimationVariant): string {
-  return `skeleton-animate-${animation}`;
-}
+import type { SkeletonTextProps } from "../types";
+import { useResolvedAnimation, useResolvedDuration } from "../context";
 
 export const SkeletonText: React.FC<SkeletonTextProps> = ({
   width = "100%",
   height = 16,
   lines = 1,
   gap = 8,
-  animation = "pulse",
-  duration = 1.5,
+  animation: animationProp,
+  duration: durationProp,
   className,
   style,
 }) => {
+  const animation = useResolvedAnimation(animationProp);
+  const duration = useResolvedDuration(durationProp, animation);
   const classes = [
     "skeleton-node",
+    "skeleton-node--relative",
     "skeleton-node--rounded",
-    getAnimationClass(animation),
+    `skeleton-animate-${animation}`,
     className ?? "",
   ]
     .filter(Boolean)
@@ -27,18 +27,16 @@ export const SkeletonText: React.FC<SkeletonTextProps> = ({
   if (lines > 1) {
     return (
       <div
-        style={{ display: "flex", flexDirection: "column", gap, ...style }}
+        style={{ display: "flex", flexDirection: "column", gap, width: "100%", ...style }}
         aria-hidden="true"
       >
         {Array.from({ length: lines }, (_, i) => {
-          // Last line is shorter for a natural look
           const lineWidth = i === lines - 1 ? "75%" : width;
           return (
             <div
               key={i}
               className={classes}
               style={{
-                position: "relative",
                 width: lineWidth,
                 height,
                 "--skeleton-duration": `${duration}s`,
@@ -55,7 +53,6 @@ export const SkeletonText: React.FC<SkeletonTextProps> = ({
       className={classes}
       aria-hidden="true"
       style={{
-        position: "relative",
         width,
         height,
         "--skeleton-duration": `${duration}s`,

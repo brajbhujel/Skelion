@@ -381,4 +381,24 @@ describe("detectElements", () => {
     expect(elements[0].rect.x).toBe(10);
     expect(elements[0].rect.y).toBe(20);
   });
+
+  it("skips elements marked data-skeleton=ignore", () => {
+    const skipped = document.createElement("p");
+    skipped.textContent = "Skip me";
+    skipped.setAttribute("data-skeleton", "ignore");
+    const kept = document.createElement("p");
+    kept.textContent = "Keep me";
+
+    root.appendChild(skipped);
+    root.appendChild(kept);
+
+    mockRect(root, { x: 0, y: 0, width: 400, height: 80 });
+    mockRect(skipped, { x: 0, y: 0, width: 400, height: 20 });
+    mockRect(kept, { x: 0, y: 30, width: 400, height: 20 });
+
+    const elements = detectElements(root);
+
+    expect(elements).toHaveLength(1);
+    expect(elements[0].rect.y).toBe(30);
+  });
 });

@@ -219,6 +219,8 @@ th {
   border-radius: 12px;
   border: 1px solid #e4e4e7;
   background: #ffffff;
+  min-width: 0;
+  width: 100%;
 }
 
 [data-theme='dark'] .playground-preview {
@@ -268,12 +270,12 @@ th {
 }
 
 .skeleton-node {
-  background-color: var(--skeleton-color, #e5e7eb);
+  background-color: var(--skeleton-color, #f0f0f0);
   overflow: hidden;
 }
 
 [data-theme='dark'] .skeleton-node {
-  background-color: var(--skeleton-color, #374151);
+  background-color: var(--skeleton-color, rgba(255, 255, 255, 0.08));
 }
 
 /* Navy accent for buttons and interactive elements */

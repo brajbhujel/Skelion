@@ -32,30 +32,54 @@ export interface SkeletonNode {
   rounded: boolean;
   circle: boolean;
   type: DetectedElementType;
+  /** Computed border-radius from the real element, if any */
+  radius?: string;
 }
+
+// --- Global / provider config ---
+
+export interface SkeletonConfig {
+  /** Animation style. Default: "pulse" */
+  animation?: AnimationVariant;
+  /** DOM traversal depth for auto-detection. Default: "medium" */
+  density?: Density;
+  /** Animation duration in seconds. Default: 2 (pulse: 1.8) */
+  duration?: number;
+  /** Bone fill color (light mode). Default: #f0f0f0 */
+  color?: string;
+  /** Bone fill color in dark mode. Default: rgba(255,255,255,0.08) */
+  darkColor?: string;
+  /** Shimmer highlight (light mode) */
+  shimmerColor?: string;
+  /** Shimmer highlight in dark mode */
+  darkShimmerColor?: string;
+  /** Shimmer gradient angle in degrees. Default: 110 */
+  shimmerAngle?: number;
+  /** Stagger delay between bones in ms. `true` = 80ms */
+  stagger?: number | boolean;
+  /** Fade-out duration when loading ends in ms. `true` = 300ms */
+  transition?: number | boolean;
+  /** Force rounded corners on generated bones */
+  rounded?: boolean;
+}
+
+/** @deprecated Use SkeletonConfig */
+export type SkelionConfig = SkeletonConfig;
 
 // --- Component props ---
 
-export interface SkeletonProps {
+export interface SkeletonProps extends SkeletonConfig {
   /** Whether to show the skeleton or render children */
   loading: boolean;
   /** Content to measure for auto-skeleton generation */
   children?: React.ReactNode;
-  /** Animation style. Default: "pulse" */
-  animation?: AnimationVariant;
-  /** Animation duration in seconds. Default: 1.5 */
-  duration?: number;
-  /** DOM traversal depth for auto-detection. Default: "medium" */
-  density?: Density;
-  /** Force rounded corners on all nodes */
-  rounded?: boolean;
   /** Custom CSS class for the wrapper */
   className?: string;
   /** Wrapper element type. Default: "div" */
   as?: React.ElementType;
   /** Skeleton variant / preset. Default: "auto" when children present */
   variant?: Variant;
-  /** Enable SSR-safe Boneyard Pattern rendering */
+  /** Enable SSR-safe rendering (static markup, animations after hydrate) */
   ssr?: boolean;
   /** Custom width (for simple skeletons without children) */
   width?: number | string;
@@ -63,6 +87,19 @@ export interface SkeletonProps {
   height?: number | string;
   /** Inline style for the wrapper */
   style?: React.CSSProperties;
+  /**
+   * Mock content measured while `loading` is true.
+   * Use when children would collapse without data (same idea as Boneyard's fixture).
+   */
+  fixture?: React.ReactNode;
+  /** Shown while loading if no bones have been measured yet */
+  fallback?: React.ReactNode;
+  /** Extra class applied to each generated bone */
+  boneClass?: string;
+}
+
+export interface SkeletonProviderProps extends SkeletonConfig {
+  children: React.ReactNode;
 }
 
 // --- Sub-component props ---
@@ -76,9 +113,9 @@ export interface SkeletonTextProps {
   lines?: number;
   /** Gap between lines in px. Default: 8 */
   gap?: number;
-  /** Animation style. Default: "pulse" */
+  /** Animation style. Inherited from provider, else "pulse" */
   animation?: AnimationVariant;
-  /** Animation duration in seconds. Default: 1.5 */
+  /** Animation duration in seconds. Inherited from provider, else 2 */
   duration?: number;
   /** Custom CSS class */
   className?: string;
@@ -89,9 +126,9 @@ export interface SkeletonTextProps {
 export interface SkeletonCircleProps {
   /** Diameter of the circle. Default: 48 */
   size?: number;
-  /** Animation style. Default: "pulse" */
+  /** Animation style. Inherited from provider, else "pulse" */
   animation?: AnimationVariant;
-  /** Animation duration in seconds. Default: 1.5 */
+  /** Animation duration in seconds. Inherited from provider, else 2 */
   duration?: number;
   /** Custom CSS class */
   className?: string;
@@ -106,9 +143,9 @@ export interface SkeletonBlockProps {
   height?: number | string;
   /** Apply rounded corners. Default: true */
   rounded?: boolean;
-  /** Animation style. Default: "pulse" */
+  /** Animation style. Inherited from provider, else "pulse" */
   animation?: AnimationVariant;
-  /** Animation duration in seconds. Default: 1.5 */
+  /** Animation duration in seconds. Inherited from provider, else 2 */
   duration?: number;
   /** Custom CSS class */
   className?: string;
@@ -121,9 +158,9 @@ export interface SkeletonImageProps {
   width?: number | string;
   /** Height of the image placeholder. Default: 200 */
   height?: number | string;
-  /** Animation style. Default: "pulse" */
+  /** Animation style. Inherited from provider, else "pulse" */
   animation?: AnimationVariant;
-  /** Animation duration in seconds. Default: 1.5 */
+  /** Animation duration in seconds. Inherited from provider, else 2 */
   duration?: number;
   /** Custom CSS class */
   className?: string;

@@ -21,8 +21,8 @@ const skeletonStyles = `
     50% { opacity: 0.4; }
   }
   @keyframes sk-shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+    0% { background-position: 140% 0; }
+    100% { background-position: -40% 0; }
   }
   @keyframes sk-wave {
     0% { transform: translateX(-100%); }
@@ -49,9 +49,9 @@ function getSkeletonStyle(
     case 'shimmer':
       return {
         ...base,
-        background: `linear-gradient(90deg, ${color} 0%, ${shimmerColor} 50%, ${color} 100%)`,
-        backgroundSize: '200% 100%',
-        animation: `sk-shimmer ${duration}s ease-in-out infinite`,
+        background: `linear-gradient(110deg, ${color} 36%, ${shimmerColor} 50%, ${color} 64%)`,
+        backgroundSize: '240% 100%',
+        animation: `sk-shimmer ${duration}s linear infinite`,
       };
     case 'wave':
       return base;
@@ -96,7 +96,7 @@ function SkeletonBox({
             position: 'absolute',
             inset: 0,
             background: `linear-gradient(90deg, transparent, ${shimmerColor}, transparent)`,
-            animation: `sk-wave ${duration}s ease-in-out infinite`,
+            animation: `sk-wave ${duration}s linear infinite`,
           }}
         />
       )}
@@ -243,9 +243,9 @@ function DashboardDemo({
         {loading ? (
           <>
             <SkeletonBox {...skProps} width={64} height={64} circle />
-            <div style={{ flex: 1 }}>
-              <SkeletonBox {...skProps} width={200} height={22} style={{ marginBottom: 6 }} />
-              <SkeletonBox {...skProps} width={300} height={14} />
+            <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
+              <SkeletonBox {...skProps} width="45%" height={22} style={{ marginBottom: 6 }} />
+              <SkeletonBox {...skProps} width="70%" height={14} />
             </div>
           </>
         ) : (
@@ -274,9 +274,9 @@ function DashboardDemo({
           <div className="dashboard-card" key={i}>
             {loading ? (
               <>
-                <SkeletonBox {...skProps} width={80} height={12} style={{ marginBottom: 8 }} />
-                <SkeletonBox {...skProps} width={60} height={28} style={{ marginBottom: 4 }} />
-                <SkeletonBox {...skProps} width={100} height={12} />
+                <SkeletonBox {...skProps} width="55%" height={12} style={{ marginBottom: 8 }} />
+                <SkeletonBox {...skProps} width="40%" height={28} style={{ marginBottom: 4 }} />
+                <SkeletonBox {...skProps} width="70%" height={12} />
               </>
             ) : (
               <>
@@ -304,8 +304,8 @@ function DashboardDemo({
                 {loading ? (
                   <>
                     <SkeletonBox {...skProps} width="50%" height={15} style={{ marginBottom: 4 }} />
-                    <SkeletonBox {...skProps} width="80%" height={12} style={{ marginBottom: 4 }} />
-                    <SkeletonBox {...skProps} width="60%" height={11} />
+                    <SkeletonBox {...skProps} width="100%" height={12} style={{ marginBottom: 4 }} />
+                    <SkeletonBox {...skProps} width="80%" height={11} />
                   </>
                 ) : (
                   <>
@@ -383,11 +383,11 @@ function DashboardDemo({
 export default function Playground(): React.ReactNode {
   const [animation, setAnimation] = useState<Animation>('pulse');
   const [variant, setVariant] = useState<Variant>('auto');
-  const [duration, setDuration] = useState(1.5);
+  const [duration, setDuration] = useState(2);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'components' | 'dashboard'>('dashboard');
-  const [color, setColor] = useState('#e5e7eb');
-  const [shimmerColor, setShimmerColor] = useState('rgba(255,255,255,0.4)');
+  const [color, setColor] = useState('#f0f0f0');
+  const [shimmerColor, setShimmerColor] = useState('#f7f7f7');
   const [customWidth, setCustomWidth] = useState(200);
   const [customHeight, setCustomHeight] = useState(20);
   const [circleSize, setCircleSize] = useState(48);

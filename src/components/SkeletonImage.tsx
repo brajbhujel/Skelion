@@ -1,22 +1,22 @@
 import React from "react";
-import type { AnimationVariant, SkeletonImageProps } from "../types";
-
-function getAnimationClass(animation: AnimationVariant): string {
-  return `skeleton-animate-${animation}`;
-}
+import type { SkeletonImageProps } from "../types";
+import { useResolvedAnimation, useResolvedDuration } from "../context";
 
 export const SkeletonImage: React.FC<SkeletonImageProps> = ({
   width = "100%",
   height = 200,
-  animation = "pulse",
-  duration = 1.5,
+  animation: animationProp,
+  duration: durationProp,
   className,
   style,
 }) => {
+  const animation = useResolvedAnimation(animationProp);
+  const duration = useResolvedDuration(durationProp, animation);
   const classes = [
     "skeleton-node",
+    "skeleton-node--relative",
     "skeleton-node--rounded",
-    getAnimationClass(animation),
+    `skeleton-animate-${animation}`,
     className ?? "",
   ]
     .filter(Boolean)
@@ -27,7 +27,6 @@ export const SkeletonImage: React.FC<SkeletonImageProps> = ({
       className={classes}
       aria-hidden="true"
       style={{
-        position: "relative",
         width,
         height,
         display: "flex",
@@ -37,7 +36,6 @@ export const SkeletonImage: React.FC<SkeletonImageProps> = ({
         ...style,
       } as React.CSSProperties}
     >
-      {/* Image placeholder icon */}
       <svg
         width="48"
         height="48"
