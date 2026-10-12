@@ -140,6 +140,11 @@ const config: Config = {
           position: 'left',
         },
         {
+          to: '/docs/compare',
+          label: 'Compare',
+          position: 'left',
+        },
+        {
           href: 'https://www.npmjs.com/package/skelion',
           label: 'npm',
           position: 'right',
@@ -159,7 +164,15 @@ const config: Config = {
           items: [
             { label: 'Getting Started', to: '/docs/installation' },
             { label: 'API Reference', to: '/docs/api-reference' },
+            { label: 'Compare', to: '/docs/compare' },
             { label: 'Playground', to: '/playground' },
+          ],
+        },
+        {
+          title: 'Compare',
+          items: [
+            { label: 'vs Boneyard', to: '/docs/compare' },
+            { label: 'vs react-loading-skeleton', to: '/docs/compare' },
           ],
         },
         {

@@ -75,7 +75,31 @@ function CustomSkeleton() {
 }
 ```
 
-## 4. Simple Skeleton (Width/Height)
+## 4. Provider + theming
+
+```tsx
+import { Skeleton, SkeletonProvider } from "skelion";
+
+<SkeletonProvider animation="shimmer" duration={2} color="#f0f0f0">
+  <App />
+</SkeletonProvider>
+```
+
+## 5. SSR / first paint
+
+```tsx
+<Skeleton loading={loading} ssr>
+  <Dashboard />
+</Skeleton>
+
+<Skeleton loading={loading} ssr initialBones={bones}>
+  <Dashboard />
+</Skeleton>
+```
+
+Details: [SSR & Next.js](./guides/ssr).
+
+## 6. Simple Skeleton (Width/Height)
 
 For a single skeleton shape without children:
 

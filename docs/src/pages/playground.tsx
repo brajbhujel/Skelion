@@ -383,13 +383,13 @@ function DashboardShell({
         <div className="pg-kpis">
           {KPIS.map((kpi) => (
             <div className="pg-card" key={kpi.label}>
-              {loading ? (
-                <>
-                  <Bone {...sk} width="50%" height={12} index={next()} style={{ marginBottom: 10 }} />
-                  <Bone {...sk} width="42%" height={28} index={next()} style={{ marginBottom: 8 }} />
-                  <Bone {...sk} width="38%" height={12} index={next()} />
-                </>
-              ) : (
+            {loading ? (
+              <>
+                <Bone {...sk} width="100%" height={12} index={next()} style={{ marginBottom: 10 }} />
+                <Bone {...sk} width="100%" height={28} index={next()} style={{ marginBottom: 8 }} />
+                <Bone {...sk} width="55%" height={12} index={next()} />
+              </>
+            ) : (
                 <>
                   <div className="pg-muted">{kpi.label}</div>
                   <div className="pg-kpi-value">{kpi.value}</div>
@@ -535,34 +535,67 @@ function DashboardShell({
   );
 }
 
-function ComponentsLab({ sk }: { sk: SkProps }) {
+function ComponentsLab({ loading, sk }: { loading: boolean; sk: SkProps }) {
   return (
     <div className="pg-lab">
-      <section>
+      <section className="pg-lab-block">
         <Heading as="h3">Text</Heading>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 420 }}>
-          <Bone {...sk} width="100%" height={14} index={0} />
-          <Bone {...sk} width="92%" height={14} index={1} />
-          <Bone {...sk} width="76%" height={14} index={2} />
+        <div className="pg-lab-stack">
+          {loading ? (
+            <>
+              <Bone {...sk} width="100%" height={14} index={0} />
+              <Bone {...sk} width="100%" height={14} index={1} />
+              <Bone {...sk} width="75%" height={14} index={2} />
+            </>
+          ) : (
+            <>
+              <p className="pg-lab-line">Inventory sync keeps every branch stocked in real time.</p>
+              <p className="pg-lab-line">Orders, refunds, and webhooks land in one activity stream.</p>
+              <p className="pg-lab-line pg-lab-line--short">Built for multi-branch SaaS teams.</p>
+            </>
+          )}
         </div>
       </section>
-      <section>
+      <section className="pg-lab-block">
         <Heading as="h3">Avatar</Heading>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <Bone {...sk} width={48} height={48} circle index={0} />
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <Bone {...sk} width="55%" height={14} index={1} />
-            <Bone {...sk} width="35%" height={12} index={2} />
-          </div>
+        <div className="pg-lab-avatar">
+          {loading ? (
+            <>
+              <Bone {...sk} width={48} height={48} circle index={0} />
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <Bone {...sk} width="100%" height={14} index={1} />
+                <Bone {...sk} width="60%" height={12} index={2} />
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="pg-avatar" style={{ width: 48, height: 48, fontSize: '0.85rem' }}>PS</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="pg-team-name">Priya Sharma</div>
+                <div className="pg-muted">Ops lead · Skelion Ops</div>
+              </div>
+            </>
+          )}
         </div>
       </section>
-      <section>
+      <section className="pg-lab-block">
         <Heading as="h3">Card</Heading>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
-          <Bone {...sk} width="100%" height={140} radius={12} index={0} />
-          <Bone {...sk} width="70%" height={16} index={1} />
-          <Bone {...sk} width="100%" height={12} index={2} />
-          <Bone {...sk} width="85%" height={12} index={3} />
+        <div className="pg-lab-card">
+          {loading ? (
+            <>
+              <Bone {...sk} width="100%" height={160} radius={12} index={0} />
+              <Bone {...sk} width="100%" height={18} index={1} />
+              <Bone {...sk} width="100%" height={14} index={2} />
+              <Bone {...sk} width="85%" height={14} index={3} />
+            </>
+          ) : (
+            <>
+              <div className="pg-lab-card-media" />
+              <h4 className="pg-lab-card-title">Weekly branch report</h4>
+              <p className="pg-lab-line">Sales, stockouts, and fulfillment across every location.</p>
+              <p className="pg-lab-line pg-lab-line--short">Updated every Monday at 09:00.</p>
+            </>
+          )}
         </div>
       </section>
     </div>
@@ -572,7 +605,7 @@ function ComponentsLab({ sk }: { sk: SkProps }) {
 export default function Playground(): React.ReactNode {
   const [animation, setAnimation] = useState<Animation>('shimmer');
   const [duration, setDuration] = useState(2);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [view, setView] = useState<'dashboard' | 'components'>('dashboard');
   const [color, setColor] = useState('#f0f0f0');
   const [shimmerColor, setShimmerColor] = useState('#f7f7f7');
@@ -635,7 +668,11 @@ export default function Playground(): React.ReactNode {
         </div>
 
         <div className="pg-stage">
-          {view === 'dashboard' ? <DashboardShell loading={loading} sk={sk} /> : <ComponentsLab sk={sk} />}
+          {view === 'dashboard' ? (
+            <DashboardShell loading={loading} sk={sk} />
+          ) : (
+            <ComponentsLab loading={loading} sk={sk} />
+          )}
         </div>
       </div>
     </Layout>

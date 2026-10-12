@@ -26,6 +26,7 @@ const sidebars: SidebarsConfig = {
       ],
     },
     'examples',
+    'compare',
     'migration-v2',
     'migration-v3',
   ],

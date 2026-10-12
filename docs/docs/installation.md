@@ -17,6 +17,26 @@ yarn add skelion
 pnpm add skelion
 ```
 
+## Upgrading to v3
+
+This release is a **major version** (`3.0.0`): defaults changed (full width, lighter bones, slower shimmer). Most APIs are compatible.
+
+```bash
+# bump to latest published 3.x
+npm install skelion@latest
+
+# or only within the current major once v3 is installed
+npm update skelion
+```
+
+Then pull the new CSS:
+
+```tsx
+import "skelion/styles.css";
+```
+
+Read [Migration from v2 → v3](./migration-v3) if you customized colors or duration.
+
 ## CSS Import
 
 Add the CSS import to your app's entry point:

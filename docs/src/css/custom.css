@@ -234,9 +234,11 @@ th {
 }
 
 .pg-page {
-  padding: 20px 16px 48px;
-  max-width: 1280px;
-  margin: 0 auto;
+  padding: 20px 20px 48px;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  box-sizing: border-box;
 }
 
 .pg-toolbar {
@@ -295,6 +297,7 @@ th {
   overflow: hidden;
   background: #f4f4f5;
   min-height: 72vh;
+  width: 100%;
 }
 
 [data-theme='dark'] .pg-stage {
@@ -304,8 +307,9 @@ th {
 
 .pg-app {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   min-height: 72vh;
+  width: 100%;
 }
 
 @media (max-width: 960px) {
@@ -681,6 +685,8 @@ th {
   display: grid;
   gap: 32px;
   background: #fff;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 [data-theme='dark'] .pg-lab {
@@ -691,4 +697,56 @@ th {
   font-size: 0.9rem;
   color: #71717a;
   margin-bottom: 12px;
+}
+
+.pg-lab-block {
+  width: 100%;
+}
+
+.pg-lab-stack,
+.pg-lab-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pg-lab-avatar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pg-lab-line {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: #3f3f46;
+  min-height: 14px;
+}
+
+.pg-lab-line--short {
+  width: 75%;
+}
+
+[data-theme='dark'] .pg-lab-line {
+  color: #d4d4d8;
+}
+
+.pg-lab-card-media {
+  width: 100%;
+  height: 160px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #dbeafe, #ede9fe 55%, #fce7f3);
+}
+
+[data-theme='dark'] .pg-lab-card-media {
+  background: linear-gradient(135deg, #1e3a5f, #3b0764 55%, #4c0519);
+}
+
+.pg-lab-card-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 650;
 }
