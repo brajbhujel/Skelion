@@ -1,12 +1,12 @@
 {
   "name": "skelion",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Zero-config, DOM-aware, SSR-safe skeleton system for React & Next.js. Pixel-perfect bones from your real layout.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "bin": {
-    "skelion": "./dist/cli.js"
+    "skelion": "dist/cli.js"
   },
   "exports": {
     ".": {
@@ -29,8 +29,8 @@
     "*.css"
   ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
+    "build": "tsup --config tsup.config.ts && tsup --config tsup.cli.config.ts",
+    "dev": "tsup --watch --config tsup.config.ts",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",

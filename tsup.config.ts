@@ -14,40 +14,21 @@ function prependUseClient() {
   }
 }
 
-export default defineConfig([
-  // Library build
-  {
-    entry: ["src/index.ts"],
-    format: ["esm", "cjs"],
-    dts: true,
-    sourcemap: true,
-    clean: true,
-    treeshake: true,
-    splitting: false,
-    external: ["react", "react-dom"],
-    injectStyle: false,
-    onSuccess: async () => {
-      prependUseClient();
-      const cssSrc = resolve("src/styles/skeleton.css");
-      if (existsSync(cssSrc)) {
-        copyFileSync(cssSrc, resolve("dist/skeleton.css"));
-      }
-    },
+export default defineConfig({
+  entry: ["src/index.ts"],
+  format: ["esm", "cjs"],
+  dts: true,
+  sourcemap: true,
+  clean: true,
+  treeshake: true,
+  splitting: false,
+  external: ["react", "react-dom"],
+  injectStyle: false,
+  onSuccess: async () => {
+    prependUseClient();
+    const cssSrc = resolve("src/styles/skeleton.css");
+    if (existsSync(cssSrc)) {
+      copyFileSync(cssSrc, resolve("dist/skeleton.css"));
+    }
   },
-  // CLI build
-  {
-    entry: { cli: "cli/index.ts" },
-    format: ["cjs"],
-    platform: "node",
-    target: "node18",
-    outDir: "dist",
-    sourcemap: false,
-    dts: false,
-    clean: false,
-    splitting: false,
-    external: ["commander"],
-    banner: {
-      js: "#!/usr/bin/env node",
-    },
-  },
-]);
+});

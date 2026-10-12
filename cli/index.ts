@@ -7,7 +7,7 @@ const program = new Command();
 program
   .name("skelion")
   .description("Skelion — Zero-config, DOM-aware skeleton system for React & Next.js")
-  .version("3.0.0");
+  .version("3.0.1");
 
 program.addCommand(initCommand);
 program.addCommand(generateCommand);
