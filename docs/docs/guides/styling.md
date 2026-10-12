@@ -11,9 +11,9 @@ Skelion uses CSS custom properties for theming. Defaults are light bones (`#f0f0
 ```css
 :root {
   --skeleton-light-color: #f0f0f0;
-  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-color: #222222;
   --skeleton-light-shimmer: #f7f7f7;
-  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-dark-shimmer: #2c2c2c;
   --skeleton-radius: 6px;
   --skeleton-duration: 2s;
   --skeleton-angle: 110deg;
@@ -31,8 +31,8 @@ Skelion follows, in order:
 
 ```css
 .dark {
-  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
-  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-dark-color: #222222;
+  --skeleton-dark-shimmer: #2c2c2c;
 }
 ```
 
@@ -62,7 +62,7 @@ Skelion follows, in order:
 }
 
 .dark {
-  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-color: #222222;
 }
 ```
 

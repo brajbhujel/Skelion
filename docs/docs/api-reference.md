@@ -17,14 +17,15 @@ The main component for skeleton loading.
 | `animation` | `"pulse" \| "shimmer" \| "wave" \| "solid"` | `"pulse"` | Animation style |
 | `duration` | `number` | `2` (`1.8` for pulse) | Animation duration in seconds |
 | `color` | `string` | `#f0f0f0` | Bone fill in light mode |
-| `darkColor` | `string` | `rgba(255,255,255,0.08)` | Bone fill in dark mode |
-| `shimmerColor` | `string` | — | Shimmer highlight in light mode |
-| `darkShimmerColor` | `string` | — | Shimmer highlight in dark mode |
+| `darkColor` | `string` | `#222222` | Bone fill in dark mode |
+| `shimmerColor` | `string` | `#f7f7f7` | Shimmer highlight in light mode |
+| `darkShimmerColor` | `string` | `#2c2c2c` | Shimmer highlight in dark mode |
 | `shimmerAngle` | `number` | `110` | Shimmer gradient angle in degrees |
 | `stagger` | `number \| boolean` | `false` | Delay between bones in ms (`true` = 80) |
 | `transition` | `number \| boolean` | `false` | Fade-out when loading ends (`true` = 300) |
 | `fixture` | `ReactNode` | — | Mock layout measured while loading |
 | `fallback` | `ReactNode` | — | Shown before bones are measured |
+| `initialBones` | `SkeletonNode[]` | — | Precomputed bones for SSR / first paint |
 | `boneClass` | `string` | — | Extra class on each generated bone |
 | `density` | `"low" \| "medium" \| "high"` | `"medium"` | DOM traversal depth for auto-detection |
 | `variant` | `"auto" \| "text" \| "avatar" \| "card" \| "image" \| "custom"` | `"auto"` (with children) | Skeleton variant or preset |
@@ -145,9 +146,9 @@ const { isSSR, ssrClassName } = useSSRSkeleton(true);
 ```css
 :root {
   --skeleton-light-color: #f0f0f0;
-  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-color: #222222;
   --skeleton-light-shimmer: #f7f7f7;
-  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-dark-shimmer: #2c2c2c;
   --skeleton-radius: 6px;
   --skeleton-duration: 2s;
   --skeleton-angle: 110deg;

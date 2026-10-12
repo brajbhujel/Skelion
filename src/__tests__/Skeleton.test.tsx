@@ -721,4 +721,41 @@ describe("Skeleton — v3 layout and theming", () => {
     expect(node).toHaveClass("skeleton-animate-shimmer");
     expect(node.style.getPropertyValue("--skeleton-duration")).toBe("2.4s");
   });
+
+  it("renders initialBones without waiting for measurement", () => {
+    const { container } = render(
+      <Skeleton
+        loading={true}
+        ssr
+        initialBones={[
+          {
+            id: "b1",
+            x: 0,
+            y: 0,
+            width: 120,
+            height: 16,
+            rounded: true,
+            circle: false,
+            type: "text",
+          },
+          {
+            id: "b2",
+            x: 0,
+            y: 24,
+            width: 80,
+            height: 16,
+            rounded: true,
+            circle: false,
+            type: "text",
+          },
+        ]}
+      >
+        <div>Content</div>
+      </Skeleton>
+    );
+
+    const nodes = container.querySelectorAll(".skeleton-node");
+    expect(nodes.length).toBe(2);
+    expect(container.querySelector(".skeleton-fallback")).not.toBeInTheDocument();
+  });
 });

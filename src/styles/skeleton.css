@@ -7,9 +7,9 @@
 
 :root {
   --skeleton-light-color: #f0f0f0;
-  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-color: #222222;
   --skeleton-light-shimmer: #f7f7f7;
-  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-dark-shimmer: #2c2c2c;
   --skeleton-radius: 6px;
   --skeleton-duration: 2s;
   --skeleton-angle: 110deg;

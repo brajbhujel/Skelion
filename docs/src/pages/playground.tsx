@@ -1,24 +1,14 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
 
-// ─────────────────────────────────────────────
-// Inline skeleton components for the playground
-// (can't import from skelion in docs build, so
-//  we recreate the visual behavior with CSS)
-// ─────────────────────────────────────────────
-
 const ANIMATIONS = ['pulse', 'shimmer', 'wave', 'solid'] as const;
-type Animation = typeof ANIMATIONS[number];
+type Animation = (typeof ANIMATIONS)[number];
 
-const VARIANTS = ['auto', 'text', 'avatar', 'card', 'image'] as const;
-type Variant = typeof VARIANTS[number];
-
-// Skeleton CSS is inlined here for the playground preview
 const skeletonStyles = `
   @keyframes sk-pulse {
     0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
+    50% { opacity: 0.45; }
   }
   @keyframes sk-shimmer {
     0% { background-position: 140% 0; }
@@ -28,85 +18,94 @@ const skeletonStyles = `
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
   }
+  @keyframes sk-shine {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(280%); }
+  }
 `;
 
-function getSkeletonStyle(
-  animation: Animation,
-  duration: number,
-  color: string,
-  shimmerColor: string,
-): React.CSSProperties {
-  const base: React.CSSProperties = {
-    backgroundColor: color,
-    borderRadius: 4,
-    overflow: 'hidden',
-    position: 'relative' as const,
-  };
-
-  switch (animation) {
-    case 'pulse':
-      return { ...base, animation: `sk-pulse ${duration}s ease-in-out infinite` };
-    case 'shimmer':
-      return {
-        ...base,
-        background: `linear-gradient(110deg, ${color} 36%, ${shimmerColor} 50%, ${color} 64%)`,
-        backgroundSize: '240% 100%',
-        animation: `sk-shimmer ${duration}s linear infinite`,
-      };
-    case 'wave':
-      return base;
-    case 'solid':
-      return base;
-  }
-}
-
-function SkeletonBox({
-  width = '100%',
-  height = 16,
-  circle = false,
-  animation,
-  duration,
-  color,
-  shimmerColor,
-  style,
-}: {
-  width?: number | string;
-  height?: number | string;
-  circle?: boolean;
+type SkProps = {
   animation: Animation;
   duration: number;
   color: string;
   shimmerColor: string;
+  staggerMs?: number;
+  index?: number;
+};
+
+function boneStyle(
+  animation: Animation,
+  duration: number,
+  color: string,
+  shimmerColor: string,
+  staggerMs = 0,
+  index = 0,
+): React.CSSProperties {
+  const delay = staggerMs > 0 ? `${index * staggerMs}ms` : undefined;
+  const base: React.CSSProperties = {
+    backgroundColor: color,
+    borderRadius: 8,
+    overflow: 'hidden',
+    position: 'relative',
+    animationDelay: delay,
+  };
+
+  if (animation === 'pulse') {
+    return { ...base, animation: `sk-pulse ${duration}s ease-in-out infinite` };
+  }
+  if (animation === 'shimmer') {
+    return {
+      ...base,
+      backgroundImage: `linear-gradient(110deg, ${color} 36%, ${shimmerColor} 50%, ${color} 64%)`,
+      backgroundSize: '240% 100%',
+      backgroundRepeat: 'no-repeat',
+      animation: `sk-shimmer ${duration}s linear infinite`,
+    };
+  }
+  if (animation === 'solid') return base;
+  return base;
+}
+
+function Bone({
+  width = '100%',
+  height = 14,
+  circle = false,
+  radius,
+  style,
+  ...sk
+}: SkProps & {
+  width?: number | string;
+  height?: number | string;
+  circle?: boolean;
+  radius?: number | string;
   style?: React.CSSProperties;
 }) {
-  const skStyle = getSkeletonStyle(animation, duration, color, shimmerColor);
+  const s = boneStyle(sk.animation, sk.duration, sk.color, sk.shimmerColor, sk.staggerMs, sk.index);
   return (
     <div
       style={{
-        ...skStyle,
+        ...s,
         width,
         height,
-        borderRadius: circle ? '50%' : 4,
+        borderRadius: circle ? '50%' : radius ?? 8,
+        flexShrink: 0,
         ...style,
       }}
     >
-      {animation === 'wave' && (
+      {sk.animation === 'wave' && (
         <div
           style={{
             position: 'absolute',
             inset: 0,
-            background: `linear-gradient(90deg, transparent, ${shimmerColor}, transparent)`,
-            animation: `sk-wave ${duration}s linear infinite`,
+            background: `linear-gradient(110deg, transparent, ${sk.shimmerColor}, transparent)`,
+            animation: `sk-wave ${sk.duration}s linear infinite`,
+            animationDelay: sk.staggerMs ? `${(sk.index ?? 0) * sk.staggerMs}ms` : undefined,
           }}
         />
       )}
     </div>
   );
 }
-
-// ─────────────────────────────────────────────
-// Pill button component
-// ─────────────────────────────────────────────
 
 function Pill({
   label,
@@ -118,526 +117,525 @@ function Pill({
   onClick: () => void;
 }) {
   return (
-    <button
-      className={`pill ${active ? 'pill--active' : ''}`}
-      onClick={onClick}
-    >
+    <button type="button" className={`pill ${active ? 'pill--active' : ''}`} onClick={onClick}>
       {label}
     </button>
   );
 }
 
-// ─────────────────────────────────────────────
-// Preset previews
-// ─────────────────────────────────────────────
+const KPIS = [
+  { label: 'Sales Today', value: '$12,840', change: '+12.3%', up: true },
+  { label: 'Orders', value: '248', change: '+8.1%', up: true },
+  { label: 'Pending', value: '19', change: '-2.4%', up: false },
+  { label: 'Error Rate', value: '0.12%', change: '-0.03%', up: true },
+];
 
-function TextPreset(props: { animation: Animation; duration: number; color: string; shimmerColor: string }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <SkeletonBox {...props} width="100%" height={14} />
-      <SkeletonBox {...props} width="90%" height={14} />
-      <SkeletonBox {...props} width="75%" height={14} />
-    </div>
-  );
-}
+const ENDPOINTS = [
+  { path: '/api/orders', method: 'GET', p50: '42ms', p99: '180ms', rpm: '1.2k', ok: true },
+  { path: '/api/products', method: 'GET', p50: '38ms', p99: '150ms', rpm: '890', ok: true },
+  { path: '/api/checkout', method: 'POST', p50: '95ms', p99: '410ms', rpm: '320', ok: true },
+  { path: '/api/inventory', method: 'PUT', p50: '110ms', p99: '520ms', rpm: '140', ok: false },
+  { path: '/api/webhooks', method: 'POST', p50: '28ms', p99: '90ms', rpm: '64', ok: true },
+];
 
-function AvatarPreset(props: { animation: Animation; duration: number; color: string; shimmerColor: string }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-      <SkeletonBox {...props} width={48} height={48} circle />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <SkeletonBox {...props} width="60%" height={14} />
-        <SkeletonBox {...props} width="40%" height={12} />
-      </div>
-    </div>
-  );
-}
+const ACTIVITY = [
+  { text: 'Deploy #4821 succeeded on production', time: '2m ago', tone: 'ok' },
+  { text: 'Branch “Sydney” synced 128 SKUs', time: '8m ago', tone: 'ok' },
+  { text: 'Low stock: Cold Brew Capsules', time: '14m ago', tone: 'warn' },
+  { text: 'Webhook retry for Stripe invoice.paid', time: '21m ago', tone: 'warn' },
+  { text: 'Order #10928 delivered', time: '35m ago', tone: 'ok' },
+];
 
-function CardPreset(props: { animation: Animation; duration: number; color: string; shimmerColor: string }) {
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <SkeletonBox {...props} width="100%" height={160} />
-      <SkeletonBox {...props} width="70%" height={18} />
-      <SkeletonBox {...props} width="100%" height={14} />
-      <SkeletonBox {...props} width="85%" height={14} />
-    </div>
-  );
-}
+const TEAM = [
+  { name: 'Priya Sharma', role: 'Ops lead', initials: 'PS' },
+  { name: 'Jake Morrison', role: 'Warehouse', initials: 'JM' },
+  { name: 'Ana Reyes', role: 'Finance', initials: 'AR' },
+];
 
-function ImagePreset(props: { animation: Animation; duration: number; color: string; shimmerColor: string }) {
+const SCHEDULE = [
+  { title: 'Sprint Planning', tone: 'blue' },
+  { title: 'Inventory Audit', tone: 'purple' },
+  { title: '1:1 w/ Jake', tone: 'green' },
+  { title: 'Deploy Window', tone: 'yellow' },
+];
+
+const BOARD = {
+  Backlog: [
+    { title: 'Barcode scanner UX', tag: 'frontend' },
+    { title: 'CSV import v2', tag: 'backend' },
+  ],
+  'In Progress': [
+    { title: 'Multi-branch stock sync', tag: 'backend' },
+    { title: 'Dark mode tokens', tag: 'design' },
+  ],
+  Review: [{ title: 'Refunds dashboard', tag: 'frontend' }],
+  Done: [
+    { title: 'Stripe webhooks', tag: 'backend' },
+    { title: 'Order filters', tag: 'frontend' },
+  ],
+};
+
+const METHOD_COLOR: Record<string, string> = {
+  GET: '#2563eb',
+  POST: '#16a34a',
+  PUT: '#ca8a04',
+};
+
+function AreaChart() {
   return (
-    <div style={{ position: 'relative' }}>
-      <SkeletonBox {...props} width="100%" height={200} />
-      <svg
-        width="48"
-        height="48"
-        viewBox="0 0 24 24"
+    <svg viewBox="0 0 360 120" width="100%" height={120} preserveAspectRatio="none" aria-hidden>
+      <defs>
+        <linearGradient id="sk-area" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#93c5fd" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="#93c5fd" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M0 90 C40 70, 70 95, 110 60 C150 25, 180 55, 220 40 C260 25, 300 50, 360 30 L360 120 L0 120 Z"
+        fill="url(#sk-area)"
+      />
+      <path
+        d="M0 90 C40 70, 70 95, 110 60 C150 25, 180 55, 220 40 C260 25, 300 50, 360 30"
         fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          opacity: 0.15,
-        }}
-      >
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-        <circle cx="8.5" cy="8.5" r="1.5" />
-        <polyline points="21 15 16 10 5 21" />
-      </svg>
-    </div>
+        stroke="#60a5fa"
+        strokeWidth="2.5"
+      />
+    </svg>
   );
 }
 
-// ─────────────────────────────────────────────
-// Dashboard demo using Bishawa's CV data
-// ─────────────────────────────────────────────
+function BarChart() {
+  const bars = [42, 68, 55, 80, 48, 72, 90, 64, 78, 52, 86, 70];
+  return (
+    <svg viewBox="0 0 240 120" width="100%" height={120} aria-hidden>
+      {bars.map((h, i) => (
+        <rect
+          key={i}
+          x={i * 20 + 4}
+          y={120 - h}
+          width={12}
+          height={h}
+          rx={3}
+          fill={i % 3 === 0 ? '#a78bfa' : '#93c5fd'}
+        />
+      ))}
+    </svg>
+  );
+}
 
-function DashboardDemo({
+function DonutChart() {
+  return (
+    <svg viewBox="0 0 120 120" width={120} height={120} aria-hidden>
+      <circle cx="60" cy="60" r="42" fill="none" stroke="#e4e4e7" strokeWidth="16" />
+      <circle
+        cx="60"
+        cy="60"
+        r="42"
+        fill="none"
+        stroke="#60a5fa"
+        strokeWidth="16"
+        strokeDasharray="90 174"
+        strokeDashoffset="0"
+        transform="rotate(-90 60 60)"
+      />
+      <circle
+        cx="60"
+        cy="60"
+        r="42"
+        fill="none"
+        stroke="#34d399"
+        strokeWidth="16"
+        strokeDasharray="55 209"
+        strokeDashoffset="-90"
+        transform="rotate(-90 60 60)"
+      />
+      <circle
+        cx="60"
+        cy="60"
+        r="42"
+        fill="none"
+        stroke="#fbbf24"
+        strokeWidth="16"
+        strokeDasharray="35 229"
+        strokeDashoffset="-145"
+        transform="rotate(-90 60 60)"
+      />
+      <circle
+        cx="60"
+        cy="60"
+        r="42"
+        fill="none"
+        stroke="#f472b6"
+        strokeWidth="16"
+        strokeDasharray="24 240"
+        strokeDashoffset="-180"
+        transform="rotate(-90 60 60)"
+      />
+    </svg>
+  );
+}
+
+function DashboardShell({
   loading,
-  animation,
-  duration,
-  color,
-  shimmerColor,
+  sk,
 }: {
   loading: boolean;
-  animation: Animation;
-  duration: number;
-  color: string;
-  shimmerColor: string;
+  sk: SkProps;
 }) {
-  const skProps = { animation, duration, color, shimmerColor };
-
-  const stats = [
-    { label: 'Projects Shipped', value: '8+', change: '+2 this year', up: true },
-    { label: 'npm Downloads', value: '1.2K', change: '+340% growth', up: true },
-    { label: 'GitHub Stars', value: '12', change: 'Growing', up: true },
-    { label: 'Years Experience', value: '2+', change: 'Since 2024', up: true },
-  ];
-
-  const projects = [
-    { name: 'Invy', tech: 'Next.js, MongoDB, Redis, AWS', desc: 'Multi-branch inventory SaaS — 5+ businesses, 10K+ orders/mo' },
-    { name: 'Skelion', tech: 'React, TypeScript, Jest', desc: 'Zero-config skeleton loader npm package' },
-    { name: 'Retribe Store', tech: 'Next.js, Express, MongoDB, AWS', desc: 'Second-hand marketplace platform for UAE' },
-    { name: 'Kasha Doors', tech: 'Next.js, Express, MongoDB, Redis', desc: 'E-commerce platform for Australian business' },
-    { name: 'Golosign', tech: 'Next.js, Express, MongoDB, Resend', desc: 'Electronic document signing platform' },
-  ];
-
-  const skills = [
-    'React', 'Next.js', 'TypeScript', 'Node.js', 'Express', 'MongoDB',
-    'Tailwind CSS', 'AWS', 'Python', 'Django', 'React Native', 'Supabase',
-  ];
-
-  const experience = [
-    { role: 'Full-Stack Developer', company: 'ZeptoSky, Australia', period: 'Mar 2026 – Present' },
-    { role: 'Full-Stack Developer', company: 'Munal Technology, UK', period: 'Nov 2025 – Present' },
-    { role: 'IT Assistant / Developer', company: 'Birat Rani Eye Hospital', period: 'Feb – Nov 2025' },
-  ];
+  let boneIndex = 0;
+  const next = () => {
+    const i = boneIndex;
+    boneIndex += 1;
+    return i;
+  };
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{ marginBottom: 32, display: 'flex', alignItems: 'center', gap: 16 }}>
-        {loading ? (
-          <>
-            <SkeletonBox {...skProps} width={64} height={64} circle />
-            <div style={{ flex: 1, minWidth: 0, width: '100%' }}>
-              <SkeletonBox {...skProps} width="45%" height={22} style={{ marginBottom: 6 }} />
-              <SkeletonBox {...skProps} width="70%" height={14} />
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={{
-              width: 64, height: 64, borderRadius: '50%',
-              background: '#1a1a2e', color: '#fff',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontFamily: 'Sora', fontWeight: 700, fontSize: 24,
-            }}>
-              B
-            </div>
-            <div>
-              <h3 style={{ margin: 0, fontFamily: 'Sora' }}>Bishawa Raj Bhujel</h3>
-              <p style={{ margin: 0, color: '#71717a', fontSize: '0.9rem' }}>
-                Full-Stack Developer — Biratnagar, Nepal
-              </p>
-            </div>
-          </>
-        )}
-      </div>
+    <div className="pg-app">
+      <aside className="pg-sidebar">
+        <div className="pg-brand">
+          {loading ? (
+            <>
+              <Bone {...sk} width={28} height={28} radius={8} index={next()} />
+              <Bone {...sk} width={88} height={16} index={next()} />
+            </>
+          ) : (
+            <>
+              <div className="pg-logo">S</div>
+              <span>Skelion Ops</span>
+            </>
+          )}
+        </div>
 
-      {/* Stats */}
-      <div className="dashboard-grid" style={{ marginBottom: 24 }}>
-        {stats.map((stat, i) => (
-          <div className="dashboard-card" key={i}>
+        <div className="pg-side-section">
+          <div className="pg-side-label">{loading ? <Bone {...sk} width={48} height={10} index={next()} /> : 'Team'}</div>
+          {TEAM.map((member) => (
+            <div className="pg-team-row" key={member.name}>
+              {loading ? (
+                <>
+                  <Bone {...sk} width={32} height={32} circle index={next()} />
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    <Bone {...sk} width="70%" height={12} index={next()} />
+                    <Bone {...sk} width="45%" height={10} index={next()} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="pg-avatar">{member.initials}</div>
+                  <div>
+                    <div className="pg-team-name">{member.name}</div>
+                    <div className="pg-muted">{member.role}</div>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="pg-side-section">
+          <div className="pg-side-label">{loading ? <Bone {...sk} width={56} height={10} index={next()} /> : 'Today'}</div>
+          {SCHEDULE.map((item) =>
+            loading ? (
+              <Bone key={item.title} {...sk} width="100%" height={36} radius={10} index={next()} style={{ marginBottom: 8 }} />
+            ) : (
+              <div key={item.title} className={`pg-chip pg-chip--${item.tone}`}>
+                {item.title}
+              </div>
+            ),
+          )}
+        </div>
+      </aside>
+
+      <div className="pg-main">
+        <header className="pg-topbar">
+          <div className="pg-tabs">
             {loading ? (
               <>
-                <SkeletonBox {...skProps} width="55%" height={12} style={{ marginBottom: 8 }} />
-                <SkeletonBox {...skProps} width="40%" height={28} style={{ marginBottom: 4 }} />
-                <SkeletonBox {...skProps} width="70%" height={12} />
+                <Bone {...sk} width={92} height={32} radius={999} index={next()} />
+                <Bone {...sk} width={84} height={32} radius={999} index={next()} />
+                <Bone {...sk} width={78} height={32} radius={999} index={next()} />
               </>
             ) : (
               <>
-                <h4>{stat.label}</h4>
-                <p className="value">{stat.value}</p>
-                <span className={`stat-change stat-change--${stat.up ? 'up' : 'down'}`}>
-                  {stat.change}
-                </span>
+                <span className="pg-tab pg-tab--active">Dashboard</span>
+                <span className="pg-tab">Analytics</span>
+                <span className="pg-tab">Branches</span>
+                <span className="pg-tab">Settings</span>
               </>
             )}
           </div>
-        ))}
-      </div>
+          <div className="pg-top-actions">
+            {loading ? (
+              <>
+                <Bone {...sk} width={160} height={34} radius={10} index={next()} />
+                <Bone {...sk} width={34} height={34} circle index={next()} />
+                <Bone {...sk} width={34} height={34} circle index={next()} />
+              </>
+            ) : (
+              <>
+                <div className="pg-search">Search<span>⌘K</span></div>
+                <div className="pg-bell">3</div>
+                <div className="pg-avatar">BR</div>
+              </>
+            )}
+          </div>
+        </header>
 
-      {/* Two columns: Projects + Skills/Experience */}
-      <div className="dashboard-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-        {/* Projects */}
-        <div className="dashboard-card">
-          <h3 style={{ fontFamily: 'Sora', fontSize: '1rem', marginBottom: 16 }}>
-            {loading ? <SkeletonBox {...skProps} width={100} height={18} /> : 'Projects'}
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {projects.map((project, i) => (
-              <div key={i} style={{ borderBottom: i < projects.length - 1 ? '1px solid var(--ifm-color-emphasis-200)' : 'none', paddingBottom: 12 }}>
-                {loading ? (
-                  <>
-                    <SkeletonBox {...skProps} width="50%" height={15} style={{ marginBottom: 4 }} />
-                    <SkeletonBox {...skProps} width="100%" height={12} style={{ marginBottom: 4 }} />
-                    <SkeletonBox {...skProps} width="80%" height={11} />
-                  </>
-                ) : (
-                  <>
-                    <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{project.name}</div>
-                    <div style={{ color: '#71717a', fontSize: '0.8rem' }}>{project.tech}</div>
-                    <div style={{ fontSize: '0.85rem', marginTop: 2 }}>{project.desc}</div>
-                  </>
-                )}
+        <div className="pg-kpis">
+          {KPIS.map((kpi) => (
+            <div className="pg-card" key={kpi.label}>
+              {loading ? (
+                <>
+                  <Bone {...sk} width="50%" height={12} index={next()} style={{ marginBottom: 10 }} />
+                  <Bone {...sk} width="42%" height={28} index={next()} style={{ marginBottom: 8 }} />
+                  <Bone {...sk} width="38%" height={12} index={next()} />
+                </>
+              ) : (
+                <>
+                  <div className="pg-muted">{kpi.label}</div>
+                  <div className="pg-kpi-value">{kpi.value}</div>
+                  <div className={kpi.up ? 'stat-change--up' : 'stat-change--down'}>{kpi.change}</div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <div className="pg-charts">
+          <div className="pg-card pg-card--wide">
+            <div className="pg-card-title">
+              {loading ? <Bone {...sk} width={96} height={14} index={next()} /> : 'Traffic (7d)'}
+            </div>
+            {loading ? (
+              <Bone {...sk} width="100%" height={120} radius={12} index={next()} />
+            ) : (
+              <AreaChart />
+            )}
+          </div>
+          <div className="pg-card">
+            <div className="pg-card-title">
+              {loading ? <Bone {...sk} width={88} height={14} index={next()} /> : 'Deploys (12w)'}
+            </div>
+            {loading ? (
+              <Bone {...sk} width="100%" height={120} radius={12} index={next()} />
+            ) : (
+              <BarChart />
+            )}
+          </div>
+          <div className="pg-card">
+            <div className="pg-card-title">
+              {loading ? <Bone {...sk} width={92} height={14} index={next()} /> : 'Traffic Split'}
+            </div>
+            {loading ? (
+              <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                <Bone {...sk} width={96} height={96} circle index={next()} />
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <Bone {...sk} width="80%" height={12} index={next()} />
+                  <Bone {...sk} width="70%" height={12} index={next()} />
+                  <Bone {...sk} width="60%" height={12} index={next()} />
+                </div>
               </div>
-            ))}
+            ) : (
+              <div className="pg-donut-row">
+                <DonutChart />
+                <div className="pg-legend">
+                  <div><i style={{ background: '#60a5fa' }} /> API 34%</div>
+                  <div><i style={{ background: '#34d399' }} /> Web 28%</div>
+                  <div><i style={{ background: '#fbbf24' }} /> Mobile 22%</div>
+                  <div><i style={{ background: '#f472b6' }} /> Other 16%</div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Skills + Experience */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {/* Skills */}
-          <div className="dashboard-card">
-            <h3 style={{ fontFamily: 'Sora', fontSize: '1rem', marginBottom: 12 }}>
-              {loading ? <SkeletonBox {...skProps} width={60} height={18} /> : 'Skills'}
-            </h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {skills.map((skill, i) => (
+        <div className="pg-split">
+          <div className="pg-card">
+            <div className="pg-card-title">
+              {loading ? <Bone {...sk} width={120} height={14} index={next()} /> : 'API Endpoints'}
+            </div>
+            <div className="pg-table">
+              {(loading ? ENDPOINTS : ENDPOINTS).map((row, i) =>
                 loading ? (
-                  <SkeletonBox key={i} {...skProps} width={70 + Math.random() * 30} height={28} style={{ borderRadius: 999 }} />
+                  <div className="pg-tr" key={i}>
+                    <Bone {...sk} width="28%" height={12} index={next()} />
+                    <Bone {...sk} width={44} height={20} radius={999} index={next()} />
+                    <Bone {...sk} width={48} height={12} index={next()} />
+                    <Bone {...sk} width={48} height={12} index={next()} />
+                    <Bone {...sk} width={40} height={12} index={next()} />
+                    <Bone {...sk} width={12} height={12} circle index={next()} />
+                  </div>
                 ) : (
-                  <span key={i} style={{
-                    padding: '4px 12px',
-                    borderRadius: 999,
-                    border: '1px solid var(--ifm-color-emphasis-300)',
-                    fontSize: '0.8rem',
-                    fontWeight: 500,
-                  }}>
-                    {skill}
-                  </span>
-                )
-              ))}
+                  <div className="pg-tr" key={row.path}>
+                    <code>{row.path}</code>
+                    <span className="pg-method" style={{ color: METHOD_COLOR[row.method] }}>
+                      {row.method}
+                    </span>
+                    <span>{row.p50}</span>
+                    <span>{row.p99}</span>
+                    <span>{row.rpm}</span>
+                    <span className={row.ok ? 'pg-dot pg-dot--ok' : 'pg-dot pg-dot--warn'} />
+                  </div>
+                ),
+              )}
             </div>
           </div>
 
-          {/* Experience */}
-          <div className="dashboard-card">
-            <h3 style={{ fontFamily: 'Sora', fontSize: '1rem', marginBottom: 12 }}>
-              {loading ? <SkeletonBox {...skProps} width={90} height={18} /> : 'Experience'}
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {experience.map((exp, i) => (
-                <div key={i}>
-                  {loading ? (
-                    <>
-                      <SkeletonBox {...skProps} width="55%" height={14} style={{ marginBottom: 4 }} />
-                      <SkeletonBox {...skProps} width="70%" height={12} style={{ marginBottom: 2 }} />
-                      <SkeletonBox {...skProps} width="40%" height={11} />
-                    </>
-                  ) : (
-                    <>
-                      <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{exp.role}</div>
-                      <div style={{ color: '#71717a', fontSize: '0.8rem' }}>{exp.company}</div>
-                      <div style={{ color: '#a1a1aa', fontSize: '0.75rem' }}>{exp.period}</div>
-                    </>
-                  )}
-                </div>
-              ))}
+          <div className="pg-card">
+            <div className="pg-card-title">
+              {loading ? <Bone {...sk} width={80} height={14} index={next()} /> : 'Activity'}
+            </div>
+            <div className="pg-activity">
+              {ACTIVITY.map((item, i) =>
+                loading ? (
+                  <div className="pg-activity-row" key={i}>
+                    <Bone {...sk} width={8} height={8} circle index={next()} />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <Bone {...sk} width="90%" height={12} index={next()} />
+                      <Bone {...sk} width="30%" height={10} index={next()} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="pg-activity-row" key={item.text}>
+                    <span className={item.tone === 'ok' ? 'pg-dot pg-dot--ok' : 'pg-dot pg-dot--warn'} />
+                    <div>
+                      <div>{item.text}</div>
+                      <div className="pg-muted">{item.time}</div>
+                    </div>
+                  </div>
+                ),
+              )}
             </div>
           </div>
+        </div>
+
+        <div className="pg-board">
+          {Object.entries(BOARD).map(([column, cards]) => (
+            <div className="pg-board-col" key={column}>
+              <div className="pg-card-title">
+                {loading ? <Bone {...sk} width={72} height={12} index={next()} /> : column}
+              </div>
+              {cards.map((card, i) =>
+                loading ? (
+                  <div className="pg-card pg-task" key={`${column}-${i}`}>
+                    <Bone {...sk} width="85%" height={12} index={next()} style={{ marginBottom: 10 }} />
+                    <Bone {...sk} width={64} height={20} radius={999} index={next()} />
+                  </div>
+                ) : (
+                  <div className="pg-card pg-task" key={card.title}>
+                    <div>{card.title}</div>
+                    <span className="pg-tag">{card.tag}</span>
+                  </div>
+                ),
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────
-// Main Playground Page
-// ─────────────────────────────────────────────
+function ComponentsLab({ sk }: { sk: SkProps }) {
+  return (
+    <div className="pg-lab">
+      <section>
+        <Heading as="h3">Text</Heading>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 420 }}>
+          <Bone {...sk} width="100%" height={14} index={0} />
+          <Bone {...sk} width="92%" height={14} index={1} />
+          <Bone {...sk} width="76%" height={14} index={2} />
+        </div>
+      </section>
+      <section>
+        <Heading as="h3">Avatar</Heading>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Bone {...sk} width={48} height={48} circle index={0} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <Bone {...sk} width="55%" height={14} index={1} />
+            <Bone {...sk} width="35%" height={12} index={2} />
+          </div>
+        </div>
+      </section>
+      <section>
+        <Heading as="h3">Card</Heading>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
+          <Bone {...sk} width="100%" height={140} radius={12} index={0} />
+          <Bone {...sk} width="70%" height={16} index={1} />
+          <Bone {...sk} width="100%" height={12} index={2} />
+          <Bone {...sk} width="85%" height={12} index={3} />
+        </div>
+      </section>
+    </div>
+  );
+}
 
 export default function Playground(): React.ReactNode {
-  const [animation, setAnimation] = useState<Animation>('pulse');
-  const [variant, setVariant] = useState<Variant>('auto');
+  const [animation, setAnimation] = useState<Animation>('shimmer');
   const [duration, setDuration] = useState(2);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'components' | 'dashboard'>('dashboard');
+  const [view, setView] = useState<'dashboard' | 'components'>('dashboard');
   const [color, setColor] = useState('#f0f0f0');
   const [shimmerColor, setShimmerColor] = useState('#f7f7f7');
-  const [customWidth, setCustomWidth] = useState(200);
-  const [customHeight, setCustomHeight] = useState(20);
-  const [circleSize, setCircleSize] = useState(48);
-  const [textLines, setTextLines] = useState(3);
+  const [stagger, setStagger] = useState(false);
+
+  const sk = useMemo<SkProps>(
+    () => ({
+      animation,
+      duration,
+      color,
+      shimmerColor,
+      staggerMs: stagger ? 80 : 0,
+    }),
+    [animation, duration, color, shimmerColor, stagger],
+  );
 
   return (
     <Layout
-      title="Playground — Try every Skelion feature"
-      description="Interactive playground to explore all Skelion skeleton loader features: animations, presets, sub-components, and a live dashboard demo."
+      title="Playground"
+      description="Interactive Skelion playground — real ops dashboard with pulse, shimmer, wave, and solid skeletons."
     >
       <style>{skeletonStyles}</style>
 
-      <div className="container" style={{ padding: '32px 16px' }}>
-        <Heading as="h1" style={{ marginBottom: 4, fontSize: '2rem' }}>Playground</Heading>
-        <p style={{ color: '#71717a', marginBottom: 32, fontSize: '0.95rem' }}>
-          Try every Skelion feature. Adjust controls and see the results in real time.
-        </p>
-
-        <div className="playground-container">
-          {/* Controls Panel */}
-          <div className="playground-controls">
-            {/* View Toggle */}
-            <div className="control-group">
-              <label>View</label>
-              <div className="pill-group">
-                <Pill label="Dashboard" active={view === 'dashboard'} onClick={() => setView('dashboard')} />
-                <Pill label="Components" active={view === 'components'} onClick={() => setView('components')} />
-              </div>
-            </div>
-
-            {/* Loading Toggle */}
-            <div className="control-group">
-              <label>Loading State</label>
-              <div className="pill-group">
-                <Pill label="Loading" active={loading} onClick={() => setLoading(true)} />
-                <Pill label="Loaded" active={!loading} onClick={() => setLoading(false)} />
-              </div>
-            </div>
-
-            {/* Animation */}
-            <div className="control-group">
-              <label>Animation</label>
-              <div className="pill-group">
-                {ANIMATIONS.map((a) => (
-                  <Pill key={a} label={a} active={animation === a} onClick={() => setAnimation(a)} />
-                ))}
-              </div>
-            </div>
-
-            {/* Duration */}
-            <div className="control-group">
-              <label>Duration: {duration}s</label>
+      <div className="pg-page">
+        <div className="pg-toolbar">
+          <div className="pill-group">
+            <Pill label="Skeleton" active={loading} onClick={() => setLoading(true)} />
+            <Pill label="Loaded" active={!loading} onClick={() => setLoading(false)} />
+          </div>
+          <div className="pill-group">
+            {ANIMATIONS.map((a) => (
+              <Pill key={a} label={a} active={animation === a} onClick={() => setAnimation(a)} />
+            ))}
+          </div>
+          <div className="pill-group">
+            <Pill label="Dashboard" active={view === 'dashboard'} onClick={() => setView('dashboard')} />
+            <Pill label="Components" active={view === 'components'} onClick={() => setView('components')} />
+          </div>
+          <div className="pg-toolbar-sliders">
+            <label>
+              {duration.toFixed(1)}s
               <input
                 type="range"
-                min={0.3}
-                max={4}
+                min={0.8}
+                max={3.5}
                 step={0.1}
                 value={duration}
                 onChange={(e) => setDuration(parseFloat(e.target.value))}
               />
-            </div>
-
-            {/* Skeleton Color */}
-            <div className="control-group">
-              <label>Skeleton Color</label>
-              <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  style={{ width: 36, height: 36, border: 'none', borderRadius: 6, cursor: 'pointer' }}
-                />
-                <code style={{ fontSize: '0.8rem' }}>{color}</code>
-              </div>
-            </div>
-
-            {view === 'components' && (
-              <>
-                {/* Variant */}
-                <div className="control-group">
-                  <label>Variant</label>
-                  <div className="pill-group">
-                    {VARIANTS.map((v) => (
-                      <Pill key={v} label={v} active={variant === v} onClick={() => setVariant(v)} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Custom dimensions */}
-                <div className="control-group">
-                  <label>Custom Width: {customWidth}px</label>
-                  <input
-                    type="range"
-                    min={50}
-                    max={500}
-                    value={customWidth}
-                    onChange={(e) => setCustomWidth(parseInt(e.target.value))}
-                  />
-                </div>
-
-                <div className="control-group">
-                  <label>Custom Height: {customHeight}px</label>
-                  <input
-                    type="range"
-                    min={8}
-                    max={300}
-                    value={customHeight}
-                    onChange={(e) => setCustomHeight(parseInt(e.target.value))}
-                  />
-                </div>
-
-                <div className="control-group">
-                  <label>Circle Size: {circleSize}px</label>
-                  <input
-                    type="range"
-                    min={16}
-                    max={128}
-                    value={circleSize}
-                    onChange={(e) => setCircleSize(parseInt(e.target.value))}
-                  />
-                </div>
-
-                <div className="control-group">
-                  <label>Text Lines: {textLines}</label>
-                  <input
-                    type="range"
-                    min={1}
-                    max={8}
-                    value={textLines}
-                    onChange={(e) => setTextLines(parseInt(e.target.value))}
-                  />
-                </div>
-              </>
-            )}
+            </label>
+            <label>
+              Stagger
+              <input type="checkbox" checked={stagger} onChange={(e) => setStagger(e.target.checked)} />
+            </label>
+            <label>
+              Bone
+              <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+            </label>
           </div>
+        </div>
 
-          {/* Preview Panel */}
-          <div className="playground-preview">
-            {view === 'dashboard' ? (
-              <DashboardDemo
-                loading={loading}
-                animation={animation}
-                duration={duration}
-                color={color}
-                shimmerColor={shimmerColor}
-              />
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
-                {/* Custom Skeleton */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Custom Skeleton ({customWidth}x{customHeight})
-                  </Heading>
-                  <SkeletonBox
-                    animation={animation}
-                    duration={duration}
-                    color={color}
-                    shimmerColor={shimmerColor}
-                    width={customWidth}
-                    height={customHeight}
-                  />
-                </section>
-
-                {/* Circle */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Circle ({circleSize}px)
-                  </Heading>
-                  <SkeletonBox
-                    animation={animation}
-                    duration={duration}
-                    color={color}
-                    shimmerColor={shimmerColor}
-                    width={circleSize}
-                    height={circleSize}
-                    circle
-                  />
-                </section>
-
-                {/* Text Lines */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Text ({textLines} lines)
-                  </Heading>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                    {Array.from({ length: textLines }, (_, i) => (
-                      <SkeletonBox
-                        key={i}
-                        animation={animation}
-                        duration={duration}
-                        color={color}
-                        shimmerColor={shimmerColor}
-                        width={i === textLines - 1 ? '75%' : '100%'}
-                        height={14}
-                      />
-                    ))}
-                  </div>
-                </section>
-
-                {/* Preset: Text */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Preset: Text
-                  </Heading>
-                  <TextPreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                </section>
-
-                {/* Preset: Avatar */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Preset: Avatar
-                  </Heading>
-                  <AvatarPreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                </section>
-
-                {/* Preset: Card */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Preset: Card
-                  </Heading>
-                  <CardPreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                </section>
-
-                {/* Preset: Image */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Preset: Image
-                  </Heading>
-                  <ImagePreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                </section>
-
-                {/* Combined Layout */}
-                <section>
-                  <Heading as="h3" style={{ fontSize: '0.95rem', marginBottom: 16, color: '#71717a' }}>
-                    Combined Layout
-                  </Heading>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                    <CardPreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                    <CardPreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                  </div>
-                  <div style={{ marginTop: 16 }}>
-                    <AvatarPreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                  </div>
-                  <div style={{ marginTop: 16 }}>
-                    <AvatarPreset animation={animation} duration={duration} color={color} shimmerColor={shimmerColor} />
-                  </div>
-                </section>
-              </div>
-            )}
-          </div>
+        <div className="pg-stage">
+          {view === 'dashboard' ? <DashboardShell loading={loading} sk={sk} /> : <ComponentsLab sk={sk} />}
         </div>
       </div>
     </Layout>

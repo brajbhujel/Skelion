@@ -20,7 +20,7 @@ If you already use `<Skeleton loading={...}>`, v3 will:
 | | v2 | v3 |
 |---|---|---|
 | Bone color | `#e5e7eb` | `#f0f0f0` |
-| Dark bone color | `#374151` | `rgba(255,255,255,0.08)` |
+| Dark bone color | `#374151` | `#222222` |
 | Duration | `1.5s` | `2s` (pulse `1.8s`) |
 | Shimmer highlight | harsh white overlay | `#f7f7f7` |
 | Shimmer easing | `ease-in-out` | `linear` |
@@ -53,7 +53,7 @@ Or per component:
   loading={isLoading}
   animation="shimmer"
   color="#f0f0f0"
-  darkColor="rgba(255,255,255,0.08)"
+  darkColor="#222222"
   stagger={80}
   transition={300}
   fixture={<Card data={PLACEHOLDER} />}
@@ -82,7 +82,7 @@ import { SkeletonProvider } from "skelion";
 -  --skeleton-radius: 4px;
 -  --skeleton-duration: 1.5s;
 +  --skeleton-light-color: #f0f0f0;
-+  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
++  --skeleton-dark-color: #222222;
 +  --skeleton-radius: 6px;
 +  --skeleton-duration: 2s;
 +  --skeleton-angle: 110deg;

@@ -4,26 +4,24 @@ sidebar_position: 3
 
 # SSR & Next.js
 
-Skelion is designed to work seamlessly with server-side rendering. The **Boneyard Pattern** ensures zero hydration mismatches in Next.js.
+Skelion supports two SSR strategies. Pick based on whether you need zero layout shift on first paint.
 
-## The Problem
+## How Boneyard does SSR
 
-Skeleton loaders that measure the DOM break SSR because:
-1. The server has no DOM to measure
-2. The initial client render must match the server output
-3. Layout measurement can only happen after hydration
+Boneyard is SSR-friendly because bones are **precomputed at build time**:
 
-## The Boneyard Pattern
+1. You pass a `fixture` (mock UI) and a `name`
+2. `npx boneyard-js build` runs Playwright, snapshots the real DOM, and writes `.bones.json`
+3. At runtime you pass `initialBones` (or a registry) — **no `getBoundingClientRect` on the client**
+4. The skeleton is in the HTML on first paint
 
-Skelion solves this with a three-phase approach:
+That is why Boneyard can stream skeletons from RSC / SSG / edge with no measurement flash.
 
-1. **Server render**: Static skeleton placeholder with animations disabled
-2. **Client hydration**: Identical markup renders (no mismatch)
-3. **Post-hydration**: `useEffect` enables animations and triggers layout measurement
+## How Skelion does SSR
 
-## Usage
+Skelion’s default is **runtime DOM measure** (that’s the product difference). For SSR we still avoid hydration mismatches, then optionally upgrade to Boneyard-style first paint.
 
-Add the `ssr` prop to enable SSR-safe rendering:
+### Mode A — Safe hydrate + measure (default)
 
 ```tsx
 <Skeleton loading={loading} ssr>
@@ -31,30 +29,35 @@ Add the `ssr` prop to enable SSR-safe rendering:
 </Skeleton>
 ```
 
-### With Preset Variants
+1. **Server**: static fallback (animations off via `.skeleton-ssr`)
+2. **Hydrate**: same markup (no mismatch)
+3. **After paint**: measure children / `fixture` and swap to accurate bones
+
+Use this when layouts change often and you don’t want a capture step.
+
+### Mode B — Precomputed bones (first paint, Boneyard-style)
 
 ```tsx
-<Skeleton loading={loading} variant="card" ssr>
-  <CardContent />
+import { Skeleton } from "skelion";
+import bones from "./user-card.bones.json";
+
+<Skeleton
+  loading={isLoading}
+  ssr
+  initialBones={bones}
+  fixture={<UserCard user={PLACEHOLDER} />}
+>
+  {user && <UserCard user={user} />}
 </Skeleton>
 ```
 
-### With Auto Mode
+When `initialBones` is set, Skelion **skips measurement** and paints those bones immediately — including on the server. Generate the JSON once from a measured layout (or hand-author it) and commit it.
 
-```tsx
-<Skeleton loading={loading} ssr>
-  <ComplexLayout />
-</Skeleton>
-```
-
-In auto mode with SSR:
-- Server renders a fallback skeleton placeholder
-- Client hydrates the same fallback (no mismatch)
-- After hydration, Skelion measures the real layout and swaps to accurate skeletons
+`fixture` still matters when children would collapse without API data.
 
 ## Next.js App Router
 
-Skelion is fully compatible with the App Router. The library outputs include the `"use client"` directive, so it works in client components:
+Skelion ships with `"use client"`. Import it from client components:
 
 ```tsx title="app/components/UserCard.tsx"
 "use client";
@@ -75,35 +78,32 @@ export function UserCard({ user, loading }) {
 }
 ```
 
-## Next.js Streaming
+Import CSS once in the root layout:
 
-Skelion works with React Suspense and Next.js streaming. The SSR fallback renders immediately, and the skeleton activates after the component streams in:
+```tsx title="app/layout.tsx"
+import "skelion/styles.css";
+```
 
-```tsx title="app/page.tsx"
+## Streaming / Suspense
+
+```tsx
 import { Suspense } from "react";
-import { UserCard } from "./components/UserCard";
+import { Skeleton } from "skelion";
 
 export default function Page() {
   return (
-    <Suspense fallback={<Skeleton loading={true} variant="card" ssr />}>
+    <Suspense fallback={<Skeleton loading variant="card" ssr />}>
       <UserCard />
     </Suspense>
   );
 }
 ```
 
-## CSS Import in Next.js
+## Which mode should you use?
 
-Import the CSS in your root layout:
-
-```tsx title="app/layout.tsx"
-import "skelion/styles.css";
-
-export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
-  );
-}
-```
+| Need | Use |
+|---|---|
+| Fast iteration, layout still changing | Mode A (`ssr` + measure) |
+| Marketing / dashboard first paint, no CLS | Mode B (`initialBones`) |
+| Children empty while loading | Always pass `fixture` |
+| RSC streaming shell | Preset `variant` or `initialBones` in the Suspense fallback |

@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import * as fs from "fs";
 import * as path from "path";
+import process from "node:process";
 import { loadConfig } from "../utils/config";
 
 const AVAILABLE_TEMPLATES = ["card", "list", "profile", "table"];

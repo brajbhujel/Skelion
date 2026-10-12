@@ -47,7 +47,7 @@ export interface SkeletonConfig {
   duration?: number;
   /** Bone fill color (light mode). Default: #f0f0f0 */
   color?: string;
-  /** Bone fill color in dark mode. Default: rgba(255,255,255,0.08) */
+  /** Bone fill color in dark mode. Default: #222222 */
   darkColor?: string;
   /** Shimmer highlight (light mode) */
   shimmerColor?: string;
@@ -87,15 +87,14 @@ export interface SkeletonProps extends SkeletonConfig {
   height?: number | string;
   /** Inline style for the wrapper */
   style?: React.CSSProperties;
-  /**
-   * Mock content measured while `loading` is true.
-   * Use when children would collapse without data (same idea as Boneyard's fixture).
-   */
   fixture?: React.ReactNode;
-  /** Shown while loading if no bones have been measured yet */
   fallback?: React.ReactNode;
-  /** Extra class applied to each generated bone */
   boneClass?: string;
+  /**
+   * Precomputed bones for first paint / SSR.
+   * Skips runtime measurement when provided (Boneyard-style).
+   */
+  initialBones?: SkeletonNode[];
 }
 
 export interface SkeletonProviderProps extends SkeletonConfig {

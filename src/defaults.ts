@@ -1,17 +1,9 @@
 import type { AnimationVariant, Density, SkeletonConfig } from "./types";
 
-/** Light-mode bone fill. Lighter than gray-200 so skeletons don't look like solid bars. */
 export const DEFAULT_COLOR = "#f0f0f0";
-
-/** Light-mode shimmer highlight — Boneyard's #f7f7f7, a soft lift off #f0f0f0. */
 export const DEFAULT_SHIMMER_COLOR = "#f7f7f7";
-
-/** Dark-mode bone fill. Subtle lift off the surface, not a heavy gray slab. */
-export const DEFAULT_DARK_COLOR = "rgba(255, 255, 255, 0.08)";
-
-export const DEFAULT_DARK_SHIMMER_COLOR = "rgba(255, 255, 255, 0.16)";
-
-/** Seconds. Shimmer reads frantic below ~2s; Boneyard uses 2s / 1.8s. */
+export const DEFAULT_DARK_COLOR = "#222222";
+export const DEFAULT_DARK_SHIMMER_COLOR = "#2c2c2c";
 export const DEFAULT_DURATION = 2;
 
 export const DEFAULT_PULSE_DURATION = 1.8;

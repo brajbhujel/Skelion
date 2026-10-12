@@ -10,7 +10,7 @@ v3 is a visual and layout overhaul:
 
 - **Full width** — the skeleton root and measurement layer are always `width: 100%`. Bones no longer shrink-wrap to text.
 - **Slower shimmer** — `2s` linear sweep at **110deg**, with a narrow highlight. Default pulse is `1.8s`.
-- **Lighter bones** — `#f0f0f0` in light mode, `rgba(255,255,255,0.08)` in dark. Not gray-200 slabs.
+- **Lighter bones** — `#f0f0f0` in light mode, `#222222` in dark. Not gray-200 slabs.
 - **Dark mode** — `.dark`, `[data-theme="dark"]`, and `prefers-color-scheme`.
 - **Boneyard-class DX** — `color`, `darkColor`, `shimmerColor`, `stagger`, `transition`, `fixture`, `fallback`, `boneClass`, and `<SkeletonProvider />`.
 - **`prefers-reduced-motion`** — animations disable automatically.
@@ -160,7 +160,7 @@ The `ssr` prop enables static markup on the server. The client hydrates identica
 | `animation` | `"pulse" \| "shimmer" \| "wave" \| "solid"` | `"pulse"` | Animation style |
 | `duration` | `number` | `2` (`1.8` for pulse) | Animation duration in seconds |
 | `color` | `string` | `#f0f0f0` | Bone fill (light) |
-| `darkColor` | `string` | `rgba(255,255,255,0.08)` | Bone fill (dark) |
+| `darkColor` | `string` | `#222222` | Bone fill (dark) |
 | `shimmerColor` | `string` | — | Shimmer highlight (light) |
 | `darkShimmerColor` | `string` | — | Shimmer highlight (dark) |
 | `shimmerAngle` | `number` | `110` | Shimmer gradient angle |
@@ -168,6 +168,7 @@ The `ssr` prop enables static markup on the server. The client hydrates identica
 | `transition` | `number \| boolean` | `false` | Fade out when loading ends (`true` = 300) |
 | `fixture` | `ReactNode` | — | Mock layout to measure while loading |
 | `fallback` | `ReactNode` | — | Shown before bones are measured |
+| `initialBones` | `SkeletonNode[]` | — | Precomputed bones for SSR / first paint |
 | `boneClass` | `string` | — | Class on each generated bone |
 | `density` | `"low" \| "medium" \| "high"` | `"medium"` | DOM traversal depth |
 | `variant` | `"auto" \| "text" \| "avatar" \| "card" \| "image" \| "custom"` | `"auto"` | Skeleton variant |
@@ -186,9 +187,9 @@ Skip an element during capture with `data-skeleton="ignore"`. Treat a container 
 ```css
 :root {
   --skeleton-light-color: #f0f0f0;
-  --skeleton-dark-color: rgba(255, 255, 255, 0.08);
+  --skeleton-dark-color: #222222;
   --skeleton-light-shimmer: #f7f7f7;
-  --skeleton-dark-shimmer: rgba(255, 255, 255, 0.16);
+  --skeleton-dark-shimmer: #2c2c2c;
   --skeleton-radius: 6px;
   --skeleton-duration: 2s;
   --skeleton-angle: 110deg;

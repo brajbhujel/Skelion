@@ -39,7 +39,7 @@ const config: SkeletonConfig = {
   density: "medium",
   duration: 2,
   color: "#f0f0f0",
-  darkColor: "rgba(255, 255, 255, 0.08)",
+  darkColor: "#222222",
   shimmerAngle: 110,
 };
 
@@ -52,7 +52,7 @@ const config = {
   density: "medium",
   duration: 2,
   color: "#f0f0f0",
-  darkColor: "rgba(255, 255, 255, 0.08)",
+  darkColor: "#222222",
   shimmerAngle: 110,
 };
 
@@ -119,7 +119,7 @@ export const initCommand = new Command("init")
       console.log("       --skeleton-radius: theme(borderRadius.md);");
       console.log("     }");
       console.log("     .dark {");
-      console.log("       --skeleton-color: rgba(255, 255, 255, 0.08);");
+      console.log("       --skeleton-dark-color: #222222;");
       console.log("     }\n");
     }
 

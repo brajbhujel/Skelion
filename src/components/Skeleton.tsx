@@ -110,6 +110,7 @@ const SkeletonMain: React.FC<SkeletonProps> = (props) => {
   const height = props.height;
   const style = props.style;
   const boneClass = props.boneClass;
+  const initialBones = props.initialBones;
   const color = props.color ?? ctx.color;
   const darkColor = props.darkColor ?? ctx.darkColor;
   const shimmerColor = props.shimmerColor ?? ctx.shimmerColor;
@@ -122,19 +123,22 @@ const SkeletonMain: React.FC<SkeletonProps> = (props) => {
   const { isSSR, ssrClassName } = useSSRSkeleton(ssr);
   const { showSkeleton, exiting, exitMs } = useLoadingTransition(loading, transition);
   const staggerMs = resolveMs(stagger, DEFAULT_STAGGER_MS);
+  const hasInitialBones = Boolean(initialBones && initialBones.length > 0);
 
   const measureEnabled =
-    showSkeleton && effectiveVariant === "auto" && !isSSR;
+    showSkeleton && effectiveVariant === "auto" && !isSSR && !hasInitialBones;
 
   const { containerRef, elements, measured, containerSize } = useLayoutMeasure({
     enabled: measureEnabled,
     density,
   });
 
-  const skeletonNodes = useMemo(
-    () => generateSkeleton(elements, { rounded }),
-    [elements, rounded]
-  );
+  const skeletonNodes = useMemo(() => {
+    if (hasInitialBones && initialBones) return initialBones;
+    return generateSkeleton(elements, { rounded });
+  }, [hasInitialBones, initialBones, elements, rounded]);
+
+  const bonesReady = hasInitialBones || measured;
 
   const themeStyle = buildThemeStyle(
     {
@@ -215,8 +219,7 @@ const SkeletonMain: React.FC<SkeletonProps> = (props) => {
         ? "skeleton-wrapper--wave"
         : "";
 
-  // SSR or not yet measured
-  if (isSSR || !measured) {
+  if (!bonesReady || (isSSR && !hasInitialBones)) {
     return (
       <Wrapper
         className={rootClass}
@@ -236,6 +239,10 @@ const SkeletonMain: React.FC<SkeletonProps> = (props) => {
     );
   }
 
+  const overlayHeight = hasInitialBones
+    ? Math.max(...skeletonNodes.map((n) => n.y + n.height), 100)
+    : containerSize.height || 100;
+
   return (
     <Wrapper
       className={rootClass}
@@ -244,9 +251,11 @@ const SkeletonMain: React.FC<SkeletonProps> = (props) => {
       aria-label="Loading content"
       style={themeStyle}
     >
-      <MeasureSlot containerRef={containerRef} hidden={!exiting}>
-        {exiting ? children : measureContent}
-      </MeasureSlot>
+      {!hasInitialBones ? (
+        <MeasureSlot containerRef={containerRef} hidden={!exiting}>
+          {exiting ? children : measureContent}
+        </MeasureSlot>
+      ) : null}
       <div
         className={[
           "skeleton-wrapper",
@@ -258,22 +267,22 @@ const SkeletonMain: React.FC<SkeletonProps> = (props) => {
         style={{
           position: "relative",
           width: "100%",
-          height: containerSize.height || undefined,
-          minHeight: containerSize.height || 100,
+          height: overlayHeight,
+          minHeight: overlayHeight,
         }}
       >
         {skeletonNodes.map((node, index) => (
-              <SkeletonNodeComponent
-                key={node.id}
-                node={node}
-                animation={animation}
-                duration={duration}
-                className={boneClass}
-                index={index}
-                staggerMs={staggerMs}
-                forceRounded={rounded}
-              />
-            ))}
+          <SkeletonNodeComponent
+            key={node.id}
+            node={node}
+            animation={animation}
+            duration={duration}
+            className={boneClass}
+            index={index}
+            staggerMs={staggerMs}
+            forceRounded={rounded}
+          />
+        ))}
         {showShine && skeletonNodes.length > 0 ? (
           <div className="skeleton-shine" aria-hidden="true" />
         ) : null}
